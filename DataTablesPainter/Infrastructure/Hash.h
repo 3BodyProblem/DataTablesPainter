@@ -37,7 +37,7 @@ public:
 	 * @return			返回映射值
 	 * @note			如果key不存在，则抛出runtime异常
 	 */
-	T_VALUE_TYPE		operator[]( T_KEY_TYPE nKey );
+	const T_VALUE_TYPE&	operator[]( T_KEY_TYPE nKey );
 
 	/**
 	 * @brief			设置键值对
@@ -126,12 +126,12 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Se
 }
 
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
-T_VALUE_TYPE CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::operator[]( T_KEY_TYPE nKey )
+const T_VALUE_TYPE& CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::operator[]( T_KEY_TYPE nKey )
 {
 	T_KEY_TYPE				nKeyPos = nKey % MAX_BUCKET_SIZE;
 	struct T_ListNode*		pNode = m_BucketOfHash + nKeyPos;
 
-	while( false == pNode->refNode.IsNull() )
+	while( false == pNode->IsNull() )
 	{
 		if( nKey == pNode->nHashKey )
 		{

@@ -16,6 +16,9 @@
     <Filter Include="Source Files\MemTable">
       <UniqueIdentifier>{b0fd0a5b-bc0a-4b2f-800f-c3e8a69007ac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Infrastructure">
+      <UniqueIdentifier>{2153f60a-1dfa-4e05-a5a2-5717dcbc0f44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -36,6 +39,15 @@
     <ClInclude Include="MemTable\MemRecord.h">
       <Filter>Source Files\MemTable</Filter>
     </ClInclude>
+    <ClInclude Include="Infrastructure\Lock.h">
+      <Filter>Source Files\Infrastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="MemTable\MemDatabase.h">
+      <Filter>Source Files\MemTable</Filter>
+    </ClInclude>
+    <ClInclude Include="Infrastructure\Hash.h">
+      <Filter>Source Files\Infrastructure</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DataTablesPainter.cpp">
@@ -49,6 +61,15 @@
     </ClCompile>
     <ClCompile Include="MemTable\MemRecord.cpp">
       <Filter>Source Files\MemTable</Filter>
+    </ClCompile>
+    <ClCompile Include="Infrastructure\Lock.cpp">
+      <Filter>Source Files\Infrastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="MemTable\MemDatabase.cpp">
+      <Filter>Source Files\MemTable</Filter>
+    </ClCompile>
+    <ClCompile Include="Infrastructure\Hash.cpp">
+      <Filter>Source Files\Infrastructure</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

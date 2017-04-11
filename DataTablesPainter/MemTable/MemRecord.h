@@ -44,8 +44,12 @@ namespace MemoryCollection
 		char						pszData[E_RECORD_512BYTES];	///< 数据内容
 	} ST_Record_512;											///< 512字节记录体
 
-
-
+	/**
+	 * @brief						将商品代码hash成数值并返回
+	 * @param[in]					Code				商品代码（长度20）
+	 * @return						商品代码的hash值
+	 */
+	unsigned __int64				GenerateHashKey( char (&Code)[20] );
 
 }
 #pragma pack()

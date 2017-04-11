@@ -1,0 +1,52 @@
+﻿生成启动时间为 2017/4/9 22:02:48。
+项目“D:\QYQWin\HQ\Source\DataTablesPainter\DataTablesPainter\DataTablesPainter.vcxproj”在节点 2 上(rebuild 个目标)。
+_PrepareForClean:
+  正在删除文件“Debug\DataTablesPainter.lastbuildstate”。
+InitializeBuildStatus:
+  正在创建“Debug\DataTablesPainter.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D DATATABLESPAINTER_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt DataTablesPainter.cpp Infrastructure\Hash.cpp Infrastructure\Lock.cpp MemTable\MemDatabase.cpp MemTable\MemRecord.cpp MemTable\MemTable.cpp
+  MemTable.cpp
+  MemRecord.cpp
+  MemDatabase.cpp
+  Lock.cpp
+  Hash.cpp
+  DataTablesPainter.cpp
+  正在生成代码...
+  C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D DATATABLESPAINTER_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt dllmain.cpp
+  dllmain.cpp
+ManifestResourceCompile:
+  C:\Program Files\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /nologo /fo"Debug\DataTablesPainter.dll.embed.manifest.res" Debug\DataTablesPainter_manifest.rc 
+Link:
+  C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.dll" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\DataTablesPainter.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.lib" /MACHINE:X86 /DLL Debug\DataTablesPainter.dll.embed.manifest.res
+  Debug\DataTablesPainter.obj
+  Debug\dllmain.obj
+  Debug\Hash.obj
+  Debug\Lock.obj
+  Debug\MemDatabase.obj
+  Debug\MemRecord.obj
+  Debug\MemTable.obj
+     正在创建库 D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.lib 和对象 D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.exp
+Manifest:
+  正在删除文件“Debug\DataTablesPainter.dll.embed.manifest”。
+  C:\Program Files\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"Debug\DataTablesPainter.dll.embed.manifest" /manifest Debug\DataTablesPainter.dll.intermediate.manifest
+  C:\Program Files\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /nologo /fo"Debug\DataTablesPainter.dll.embed.manifest.res" Debug\DataTablesPainter_manifest.rc 
+LinkEmbedManifest:
+  C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.dll" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\DataTablesPainter.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.lib" /MACHINE:X86 /DLL Debug\DataTablesPainter.dll.embed.manifest.res
+  Debug\DataTablesPainter.obj
+  Debug\dllmain.obj
+  Debug\Hash.obj
+  Debug\Lock.obj
+  Debug\MemDatabase.obj
+  Debug\MemRecord.obj
+  Debug\MemTable.obj
+     正在创建库 D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.lib 和对象 D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.exp
+  DataTablesPainter.vcxproj -> D:\QYQWin\HQ\Source\DataTablesPainter\Debug\DataTablesPainter.dll
+FinalizeBuildStatus:
+  正在删除文件“Debug\DataTablesPainter.unsuccessfulbuild”。
+  正在对“Debug\DataTablesPainter.lastbuildstate”执行 Touch 任务。
+已完成生成项目“D:\QYQWin\HQ\Source\DataTablesPainter\DataTablesPainter\DataTablesPainter.vcxproj”(rebuild 个目标)的操作。
+
+生成成功。
+
+已用时间 00:00:09.99
