@@ -14,6 +14,49 @@ namespace MemoryCollection
 
 
 /**
+ * @class									VariableRecordTable
+ * @brief									变长记录表
+ * @detail									数据表中记录的长度可以在构造时具体指定
+ */
+class VariableRecordTable
+{
+public:
+	/**
+	 * @brief								构造函数
+	 * @param[in]							nRecordWidth			记录长度设定
+	 * @param[in]							nKeyStrLen				记录数据块，头nKeyStrLen位，为本数据表的主键字符串
+	 */
+	VariableRecordTable( unsigned int nRecordWidth, unsigned int nKeyStrLen = 20 );
+
+	/**
+	 * @brief								追加新数据
+	 * @param[in]							pszData					追加的数据地址
+	 * @param[in]							nDataLen				数据体长度
+	 * @return								==0						增加成功
+											!=0						失败
+	 */
+	int										PushBack( const char* pszData, unsigned int nDataLen ); 
+
+private:
+	/**
+	 * @brief								扩大现有内存缓存的分配
+	 * @param[in]							nAllocItemNum			需再分配的元素数量
+	 * @return								true					分配成功
+	 */
+	bool									EnlargeBuffer( unsigned long nAllocItemNum = 1 );
+
+private:
+	unsigned int							m_nMainStrKeyLen;		///< 索引字符主键缓存长度
+	unsigned int							m_nRecordWidth;			///< 记录长度值
+	unsigned int							m_nMaxBufferSize;		///< 记录集缓存最大长度
+private:
+	CriticalObject							m_oCSLock;				///< 内存表锁
+	char*									m_pRecordsBuffer;		///< 记录集缓存
+	unsigned int							m_nCurrentDataSize;		///< 当前有效数据的长度
+};
+
+
+/**
  * @class			IMemoryTableOperator
  * @brief			内存表操作接口
  * @author			barry
@@ -109,14 +152,14 @@ bool MemTable<TYPE_RECORD>::NewRecord( char* pszData, unsigned int nDataLen )
 template<class TYPE_RECORD>
 bool MemTable<TYPE_RECORD>::UpdateRecord( char* pszData, unsigned int nDataLen )
 {
-	unsigned __int64	nKey = GenerateHashKey( (char(&)[20])*pszData );
+/*	unsigned __int64	nKey = GenerateHashKey( (char(&)[20])*pszData );
 	TYPE_RECORD&		refRecord = m_vctTable[nKey];
 
 	if( 0 != ::memcmp( &refRecord, pszData, sizeof(TYPE_RECORD) ) )
 	{
 		m_vctTable[nKey] = *((TYPE_RECORD*)pszData);
 	}
-
+*/
 	return true;
 }
 

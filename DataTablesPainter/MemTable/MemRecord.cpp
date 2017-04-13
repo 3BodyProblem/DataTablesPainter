@@ -7,15 +7,15 @@
 namespace MemoryCollection
 {
 
-unsigned __int64 GenerateHashKey( char (&Code)[20] )
+unsigned __int64 GenerateHashKey( const char* pszCode, unsigned int nMaxCodeLen )
 {
 	unsigned __int64				nTmpVal = 0;
 	unsigned __int64				nCodeKey = ::pow( 10., 18 );		///< 分配一个hash的基值
-	int								nCodeLen = ::strlen( Code );	///< 如果是期权时的code长度, EID_Mk_OPTION
+	int								nCodeLen = ::strlen( pszCode );		///< 如果是期权时的code长度, EID_Mk_OPTION
 
 	for( int i = 0; i < nCodeLen; i++ )
 	{
-		char	cChar = Code[i];
+		char	cChar = pszCode[i];
 
 		if( (cChar>='A'&&cChar<='Z') || (cChar>='a'&&cChar<='z') )	///< 判断是否为英文字符
 		{

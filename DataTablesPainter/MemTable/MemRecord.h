@@ -46,10 +46,11 @@ namespace MemoryCollection
 
 	/**
 	 * @brief						将商品代码hash成数值并返回
-	 * @param[in]					Code				商品代码（长度20）
+	 * @param[in]					pszCode				商品代码（长度20）
+	 * @param[in]					nMaxCodeLen			最长代码长度
 	 * @return						商品代码的hash值
 	 */
-	unsigned __int64				GenerateHashKey( char (&Code)[20] );
+	unsigned __int64				GenerateHashKey( const char* pszCode, unsigned int nMaxCodeLen );
 
 }
 #pragma pack()
