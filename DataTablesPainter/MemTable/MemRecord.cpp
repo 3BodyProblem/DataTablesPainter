@@ -7,11 +7,63 @@
 namespace MemoryCollection
 {
 
-unsigned __int64 GenerateHashKey( const char* pszCode, unsigned int nMaxCodeLen )
+
+RecordWithKey::RecordWithKey( char* pRecord, unsigned int nRecordLen )
+	: m_pRecordData( pRecord ), m_nRecordLen( nRecordLen )
 {
+}
+
+RecordWithKey::RecordWithKey( const RecordWithKey& obj )
+{
+	m_pRecordData = obj.m_pRecordData;
+	m_nRecordLen = obj.m_nRecordLen;
+}
+
+unsigned int RecordWithKey::Length() const
+{
+	return m_nRecordLen;
+}
+
+bool RecordWithKey::IsNone() const
+{
+	if( NULL == m_pRecordData )
+	{
+		return true;
+	}
+
+	return false;
+}
+
+int RecordWithKey::CloneFrom( const RecordWithKey& refRecord )
+{
+	if( 0 != ::memcmp( m_pRecordData, refRecord.m_pRecordData, refRecord.Length() ) )
+	{
+		memcpy( m_pRecordData, refRecord.m_pRecordData, refRecord.Length() );
+
+		return 1;
+	}
+
+	return 0;
+}
+
+int RecordWithKey::GetSerialInTable() const
+{
+	if( true == IsNone() )
+	{
+		return -1;
+	}
+
+	char*							pszCodeKey = m_pRecordData;
+	int								nCodeLen = ::strlen( pszCodeKey );
+
+	return GenerateHashKey( pszCodeKey, nCodeLen );
+}
+
+unsigned __int64 RecordWithKey::GenerateHashKey( const char* pszCode, unsigned int nCodeLen )
+{
+	char							pszMainKey[32] = { 0 };
 	unsigned __int64				nTmpVal = 0;
 	unsigned __int64				nCodeKey = ::pow( 10., 18 );		///< 分配一个hash的基值
-	int								nCodeLen = ::strlen( pszCode );		///< 如果是期权时的code长度, EID_Mk_OPTION
 
 	for( int i = 0; i < nCodeLen; i++ )
 	{
@@ -57,6 +109,8 @@ unsigned __int64 GenerateHashKey( const char* pszCode, unsigned int nMaxCodeLen 
 
 	return nCodeKey;
 }
+
+
 
 }
 

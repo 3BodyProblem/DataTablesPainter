@@ -11,6 +11,19 @@ VariableRecordTable::VariableRecordTable( unsigned int nRecordWidth, unsigned in
 {
 }
 
+VariableRecordTable::~VariableRecordTable()
+{
+	if( NULL != m_pRecordsBuffer )
+	{
+		m_nRecordWidth = 0;
+		m_nMainStrKeyLen = 0;
+		m_nMaxBufferSize = 0;
+		m_nCurrentDataSize = 0;
+		::free( m_pRecordsBuffer );
+		m_pRecordsBuffer = NULL;
+	}
+}
+
 bool VariableRecordTable::EnlargeBuffer( unsigned long nAllocItemNum )
 {
 	unsigned int	nNewBufferSize = m_nRecordWidth * m_nRecordWidth;
@@ -49,7 +62,23 @@ bool VariableRecordTable::EnlargeBuffer( unsigned long nAllocItemNum )
 	return true;
 }
 
-int VariableRecordTable::PushBack( const char* pszData, unsigned int nDataLen )
+RecordWithKey VariableRecordTable::operator[]( int nIndex )
+{
+	if( nIndex < 0 )
+	{
+		return RecordWithKey( NULL, 0 );
+	}
+
+	unsigned int		nRecordOffset = m_nRecordWidth * nIndex;
+	if( nRecordOffset >= (m_nMaxBufferSize-m_nRecordWidth) )
+	{
+		return RecordWithKey( NULL, 0 );
+	}
+
+	return RecordWithKey( m_pRecordsBuffer+nRecordOffset, m_nRecordWidth );
+}
+
+int VariableRecordTable::PushBack( const RecordWithKey& refRecord )
 {
 	if( NULL == m_pRecordsBuffer || m_nMaxBufferSize == m_nCurrentDataSize )
 	{	///< 内存未分配的情况 或 内存已经用完的情况
@@ -59,18 +88,17 @@ int VariableRecordTable::PushBack( const char* pszData, unsigned int nDataLen )
 		}
 	}
 
-	unsigned __int64	nDataSeqKey = GenerateHashKey( pszData, m_nMainStrKeyLen );
+	unsigned int		nDataSeqKey = refRecord.GetSerialInTable();
 	unsigned int		nDataOffsetIndex = m_nRecordWidth * nDataSeqKey;
-	char*				pRecord = m_pRecordsBuffer + m_nCurrentDataSize;
+	RecordWithKey		oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_nRecordWidth );
 
-	if( nDataOffsetIndex >= (m_nMaxBufferSize-nDataLen) )
+	if( nDataOffsetIndex >= (m_nMaxBufferSize-refRecord.Length()) )
 	{
 		return -2;
 	}
 
-	if( 0 != ::memcmp( pRecord, pszData, nDataLen ) )
+	if( oCurRecord.CloneFrom( refRecord ) > 0 )
 	{
-		memcpy( m_pRecordsBuffer+m_nCurrentDataSize, pszData, nDataLen );
 		++m_nCurrentDataSize;
 	}
 

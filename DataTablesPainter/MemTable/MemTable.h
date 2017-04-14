@@ -17,6 +17,7 @@ namespace MemoryCollection
  * @class									VariableRecordTable
  * @brief									变长记录表
  * @detail									数据表中记录的长度可以在构造时具体指定
+ * @note									本表只支持结构头部为string类型的定长主键的数据结构体
  */
 class VariableRecordTable
 {
@@ -27,15 +28,22 @@ public:
 	 * @param[in]							nKeyStrLen				记录数据块，头nKeyStrLen位，为本数据表的主键字符串
 	 */
 	VariableRecordTable( unsigned int nRecordWidth, unsigned int nKeyStrLen = 20 );
+	~VariableRecordTable();
 
 	/**
 	 * @brief								追加新数据
-	 * @param[in]							pszData					追加的数据地址
-	 * @param[in]							nDataLen				数据体长度
+	 * @param[in]							refRecord				追加的数据
 	 * @return								==0						增加成功
 											!=0						失败
 	 */
-	int										PushBack( const char* pszData, unsigned int nDataLen ); 
+	int										PushBack( const RecordWithKey& refRecord ); 
+
+	/**
+	 * @brief								索引出记录对象
+	 * @param[in]							Index					记录索引
+	 * @return								返回记录对象
+	 */
+	RecordWithKey							operator[]( int nIndex );
 
 private:
 	/**
@@ -54,114 +62,6 @@ private:
 	char*									m_pRecordsBuffer;		///< 记录集缓存
 	unsigned int							m_nCurrentDataSize;		///< 当前有效数据的长度
 };
-
-
-/**
- * @class			IMemoryTableOperator
- * @brief			内存表操作接口
- * @author			barry
- * @date			2017/4/1
- */
-class IMemoryTableOperator
-{
-public:
-	/**
-	 * @brief								当前数据表长度
-	 */
-	virtual unsigned int					Size() = 0;
-
-	/**
-	 * @brief								新增记录
-	 * @param[in]							pszData				记录体地址
-	 * @param[in]							nDataLen			记录体长度
-	 * @return								true				新增成功
-											false				新增失败
-	 */
-	virtual bool							NewRecord( char* pszData, unsigned int nDataLen ) = 0;
-
-	/**
-	 * @brief								更新记录
-	 * @param[in]							pszData				记录体地址
-	 * @param[in]							nDataLen			记录体长度
-	 * @return								true				更新成功
-											false				更新失败
-	 */
-	virtual bool							UpdateRecord( char* pszData, unsigned int nDataLen ) = 0;
-};
-
-/**
- * @class			MemTable<记录长度类型>
- * @brief			内存数据表模板
- * @author			barry
- * @date			2017/4/1
- */
-template<class TYPE_RECORD>
-class MemTable : public IMemoryTableOperator
-{
-public:
-	MemTable();
-
-	/**
-	 * @brief								当前数据表长度
-	 */
-	unsigned int							Size();
-
-	/**
-	 * @brief								新增记录
-	 * @param[in]							pszData				记录体地址
-	 * @param[in]							nDataLen			记录体长度
-	 * @return								true				新增成功
-											false				新增失败
-	 */
-	bool									NewRecord( char* pszData, unsigned int nDataLen );
-
-	/**
-	 * @brief								更新记录
-	 * @param[in]							pszData				记录体地址
-	 * @param[in]							nDataLen			记录体长度
-	 * @return								true				更新成功
-											false				更新失败
-	 */
-	bool									UpdateRecord( char* pszData, unsigned int nDataLen );
-
-private:
-	CriticalObject							m_oCSLock;				///< 内存表锁
-	std::vector<TYPE_RECORD>				m_vctTable;				///< 内存数据表
-};
-
-
-template<class TYPE_RECORD>
-MemTable<TYPE_RECORD>::MemTable()
-{
-}
-
-template<class TYPE_RECORD>
-unsigned int MemTable<TYPE_RECORD>::Size()
-{
-	return m_vctTable.size();
-}
-
-template<class TYPE_RECORD>
-bool MemTable<TYPE_RECORD>::NewRecord( char* pszData, unsigned int nDataLen )
-{
-	m_vctTable.push_back( *((TYPE_RECORD*)pszData) );
-
-	return true;
-}
-
-template<class TYPE_RECORD>
-bool MemTable<TYPE_RECORD>::UpdateRecord( char* pszData, unsigned int nDataLen )
-{
-/*	unsigned __int64	nKey = GenerateHashKey( (char(&)[20])*pszData );
-	TYPE_RECORD&		refRecord = m_vctTable[nKey];
-
-	if( 0 != ::memcmp( &refRecord, pszData, sizeof(TYPE_RECORD) ) )
-	{
-		m_vctTable[nKey] = *((TYPE_RECORD*)pszData);
-	}
-*/
-	return true;
-}
 
 
 ///< -----------------------------------------------------
