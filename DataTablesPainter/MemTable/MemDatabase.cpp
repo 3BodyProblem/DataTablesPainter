@@ -5,7 +5,7 @@ namespace MemoryCollection
 {
 
 
-MemDatabase::MemDatabase()
+MemDatabase::MemDatabase( unsigned int nMaxTablesNum )
 {
 }
 

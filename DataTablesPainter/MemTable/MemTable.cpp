@@ -4,9 +4,19 @@
 namespace MemoryCollection
 {
 
+VariableRecordTable::TableMeta::TableMeta( unsigned int nRecordWidth, unsigned int nKeyStrLen )
+	: m_nRecordWidth( nRecordWidth ), m_nKeyStrLen( nKeyStrLen )
+{
+}
 
-VariableRecordTable::VariableRecordTable( unsigned int nRecordWidth, unsigned int nKeyStrLen )
-	: m_nRecordWidth( nRecordWidth ), m_pRecordsBuffer( NULL ), m_nMainStrKeyLen( nKeyStrLen )
+void VariableRecordTable::TableMeta::Clear()
+{
+	m_nKeyStrLen = 0;
+	m_nRecordWidth = 0;
+}
+
+VariableRecordTable::VariableRecordTable()
+	: m_oTableMeta( 0, 0 ), m_pRecordsBuffer( NULL )
 	, m_nMaxBufferSize( 0 ), m_nCurrentDataSize( 0 )
 {
 }
@@ -15,8 +25,7 @@ VariableRecordTable::~VariableRecordTable()
 {
 	if( NULL != m_pRecordsBuffer )
 	{
-		m_nRecordWidth = 0;
-		m_nMainStrKeyLen = 0;
+		m_oTableMeta.Clear();
 		m_nMaxBufferSize = 0;
 		m_nCurrentDataSize = 0;
 		::free( m_pRecordsBuffer );
@@ -26,7 +35,7 @@ VariableRecordTable::~VariableRecordTable()
 
 bool VariableRecordTable::EnlargeBuffer( unsigned long nAllocItemNum )
 {
-	unsigned int	nNewBufferSize = m_nRecordWidth * m_nRecordWidth;
+	unsigned int	nNewBufferSize = m_oTableMeta.m_nRecordWidth * nAllocItemNum;
 
 	if( 0 == nAllocItemNum )
 	{
@@ -69,13 +78,13 @@ RecordWithKey VariableRecordTable::operator[]( int nIndex )
 		return RecordWithKey( NULL, 0 );
 	}
 
-	unsigned int		nRecordOffset = m_nRecordWidth * nIndex;
-	if( nRecordOffset >= (m_nMaxBufferSize-m_nRecordWidth) )
+	unsigned int		nRecordOffset = m_oTableMeta.m_nRecordWidth * nIndex;
+	if( nRecordOffset >= (m_nMaxBufferSize-m_oTableMeta.m_nRecordWidth) )
 	{
 		return RecordWithKey( NULL, 0 );
 	}
 
-	return RecordWithKey( m_pRecordsBuffer+nRecordOffset, m_nRecordWidth );
+	return RecordWithKey( m_pRecordsBuffer+nRecordOffset, m_oTableMeta.m_nRecordWidth );
 }
 
 int VariableRecordTable::PushBack( const RecordWithKey& refRecord )
@@ -89,8 +98,8 @@ int VariableRecordTable::PushBack( const RecordWithKey& refRecord )
 	}
 
 	unsigned int		nDataSeqKey = refRecord.GetSerialInTable();
-	unsigned int		nDataOffsetIndex = m_nRecordWidth * nDataSeqKey;
-	RecordWithKey		oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_nRecordWidth );
+	unsigned int		nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * nDataSeqKey;
+	RecordWithKey		oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
 
 	if( nDataOffsetIndex >= (m_nMaxBufferSize-refRecord.Length()) )
 	{

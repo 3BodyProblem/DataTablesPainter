@@ -46,7 +46,7 @@ typedef CollisionHash<unsigned int, struct T_TABLE_POS_INF>	TPostionHash;	///< ¹
 class MemDatabase
 {
 public:
-	MemDatabase();
+	MemDatabase( unsigned int nMaxTablesNum = 64 );
 
 	/**
 	 * @brief					ÇåÀíËùÓÐÊý¾Ý

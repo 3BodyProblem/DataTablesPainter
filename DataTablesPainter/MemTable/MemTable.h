@@ -23,11 +23,20 @@ class VariableRecordTable
 {
 public:
 	/**
-	 * @brief								构造函数
-	 * @param[in]							nRecordWidth			记录长度设定
-	 * @param[in]							nKeyStrLen				记录数据块，头nKeyStrLen位，为本数据表的主键字符串
+	 * @class				TableMeta
+	 * @brief				数据表元信息
 	 */
-	VariableRecordTable( unsigned int nRecordWidth, unsigned int nKeyStrLen = 20 );
+	class TableMeta
+	{
+	public:
+		TableMeta( unsigned int nRecordWidth, unsigned int nKeyStrLen = 20 );
+		void			Clear();
+	public:
+		unsigned int	m_nRecordWidth;		///< 记录长度设定
+		unsigned int	m_nKeyStrLen;		///< 记录数据块，头nKeyStrLen位，为本数据表的主键字符串
+	};
+public:
+	VariableRecordTable();
 	~VariableRecordTable();
 
 	/**
@@ -54,12 +63,11 @@ private:
 	bool									EnlargeBuffer( unsigned long nAllocItemNum = 1 );
 
 private:
-	unsigned int							m_nMainStrKeyLen;		///< 索引字符主键缓存长度
-	unsigned int							m_nRecordWidth;			///< 记录长度值
-	unsigned int							m_nMaxBufferSize;		///< 记录集缓存最大长度
+	TableMeta								m_oTableMeta;			///< 数据表元信息
 private:
 	CriticalObject							m_oCSLock;				///< 内存表锁
 	char*									m_pRecordsBuffer;		///< 记录集缓存
+	unsigned int							m_nMaxBufferSize;		///< 记录集缓存最大长度
 	unsigned int							m_nCurrentDataSize;		///< 当前有效数据的长度
 };
 
