@@ -2,17 +2,12 @@
 #define	__MEM_TABLE__MEM_DATABASE_H__
 
 
+#include <vector>
 #include "MemTable.h"
 
 
 namespace MemoryCollection
 {
-
-
-typedef MemTableCollection<MemTable<ST_Record_64>>	TYPE_64BytesTables;			///< ¼ÇÂ¼³¤¶È64BytesµÄÊý¾Ý±í
-typedef MemTableCollection<MemTable<ST_Record_128>>	TYPE_128BytesTables;		///< ¼ÇÂ¼³¤¶È128BytesµÄÊý¾Ý±í
-typedef MemTableCollection<MemTable<ST_Record_256>>	TYPE_256BytesTables;		///< ¼ÇÂ¼³¤¶È256BytesµÄÊý¾Ý±í
-typedef MemTableCollection<MemTable<ST_Record_512>>	TYPE_512BytesTables;		///< ¼ÇÂ¼³¤¶È512BytesµÄÊý¾Ý±í
 
 
 /**
@@ -23,14 +18,14 @@ typedef MemTableCollection<MemTable<ST_Record_512>>	TYPE_512BytesTables;		///< ¼
  */
 struct T_TABLE_POS_INF
 {
-	T_TABLE_POS_INF() { nDataPosition = 0; eRecordType = E_RECORD_NONE; }
-	T_TABLE_POS_INF( ENUM_RECORD_TYPE eType, unsigned int nTablePos, unsigned int nDataPos ) { eRecordType = eType; nTablePosition = nTablePos; nDataPosition = nDataPos; }
-	ENUM_RECORD_TYPE		eRecordType;			///< ¼ÇÂ¼³¤¶ÈÀàÐÍ
-	unsigned int			nTablePosition;			///< Ê¹ÓÃÊý¾Ý±íµÄË÷ÒýÎ»ÖÃ
-	unsigned int			nDataPosition;			///< ¼ÇÂ¼ÔÚÊý¾Ý±íÖÐµÄÎ»ÖÃ
+	T_TABLE_POS_INF() { nTablePosition = -1; nDataPosition = -1; }
+	T_TABLE_POS_INF( unsigned int nTablePos, unsigned int nDataPos ) { nTablePosition = nTablePos; nDataPosition = nDataPos; }
+	int				nTablePosition;			///< Ê¹ÓÃÊý¾Ý±íµÄË÷ÒýÎ»ÖÃ
+	int				nDataPosition;			///< ¼ÇÂ¼ÔÚÊý¾Ý±íÖÐµÄÎ»ÖÃ
 };
 
 
+const unsigned int MAX_TABBLE_NO = 128;										///< ×î¶à¿É·ÖÅäµÄÊý¾Ý±íµÄÊýÁ¿
 typedef CollisionHash<unsigned int, struct T_TABLE_POS_INF>	TPostionHash;	///< ¹þÏ£±í
 
 
@@ -69,14 +64,12 @@ public:
 	 * @param[in]				nMsgID				MessageID
 	 * @return					·µ»ØÒÑ¾­´æÔÚµÄÄÚ´æ±í»òÐÂ½¨µÄÄÚ´æ±í
 	 */
-	IMemoryTableOperator*		QueryTableByMsgID( unsigned int nMsgID );
+	VariableRecordTable*		QueryTableByMsgID( unsigned int nMsgID );
 
 private:
-	TPostionHash				m_HashTableOfPostion;					///< ¹þÏ¡±í,msgidËùÔÚµÄÊý¾ÝÑ¡ÔñÀàÐÍ
-	TYPE_64BytesTables			m_ArrayOfTable64Bytes;					///< Ô¤±¸µÄÊý¾Ý±í
-	TYPE_128BytesTables			m_ArrayOfTable128Bytes;					///< Ô¤±¸µÄÊý¾Ý±í
-	TYPE_256BytesTables			m_ArrayOfTable256Bytes;					///< Ô¤±¸µÄÊý¾Ý±í
-	TYPE_512BytesTables			m_ArrayOfTable512Bytes;					///< Ô¤±¸µÄÊý¾Ý±í
+	TPostionHash				m_HashTableOfPostion;						///< ¹þÏ¡±í,msgidËùÔÚµÄÊý¾ÝÑ¡ÔñÀàÐÍ
+	VariableRecordTable			m_arrayQuotationTables[MAX_TABBLE_NO];		///< ÐÐÇé¶¯Ì¬±í¼¯ºÏ
+	unsigned int				m_nUsedTableNum;							///< ÒÑ¾­Ê¹ÓÃÖéÊý¾Ý±íÊýÁ¿
 };
 
 

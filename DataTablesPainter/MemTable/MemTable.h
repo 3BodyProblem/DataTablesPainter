@@ -64,67 +64,12 @@ private:
 
 private:
 	TableMeta								m_oTableMeta;			///< 数据表元信息
-private:
 	CriticalObject							m_oCSLock;				///< 内存表锁
+private:
 	char*									m_pRecordsBuffer;		///< 记录集缓存
 	unsigned int							m_nMaxBufferSize;		///< 记录集缓存最大长度
 	unsigned int							m_nCurrentDataSize;		///< 当前有效数据的长度
 };
-
-
-///< -----------------------------------------------------
-
-
-template<class TYPE_MemTable, const unsigned MAX_TABLE_NUM = 32>
-class MemTableCollection
-{
-public:
-	MemTableCollection();
-
-	/**
-	 * @brief				增加占用表计数
-	 */
-	__inline void			IncreaseTableNum();
-
-	/**
-	 * @brief				创建的数据表数量
-	 */
-	unsigned int			Size();
-
-	/**
-	 * @brief				根据下标取得数据表
-	 * @param[in]			nTablePos			数据表下标
-	 */
-	TYPE_MemTable&			operator[]( unsigned int nTablePos );
-
-private:
-	unsigned int			m_nUsedTableNumber;						///< 已经使用的数据表数量
-	TYPE_MemTable			m_ArrayOfMemTable[MAX_TABLE_NUM];		///< 数据表预备列表
-};
-
-template<class TYPE_MemTable, const unsigned MAX_TABLE_NUM>
-MemTableCollection<TYPE_MemTable, MAX_TABLE_NUM>::MemTableCollection()
- : m_nUsedTableNumber( 0 )
-{
-}
-
-template<class TYPE_MemTable, const unsigned MAX_TABLE_NUM>
-void MemTableCollection<TYPE_MemTable, MAX_TABLE_NUM>::IncreaseTableNum()
-{
-	++m_nUsedTableNumber;
-}
-
-template<class TYPE_MemTable, const unsigned MAX_TABLE_NUM>
-TYPE_MemTable& MemTableCollection<TYPE_MemTable, MAX_TABLE_NUM>::operator[]( unsigned int nTablePos )
-{
-	return m_ArrayOfMemTable[nTablePos];
-}
-
-template<class TYPE_MemTable, const unsigned MAX_TABLE_NUM>
-unsigned int MemTableCollection<TYPE_MemTable, MAX_TABLE_NUM>::Size()
-{
-	return m_nUsedTableNumber;
-}
 
 
 
@@ -133,6 +78,10 @@ unsigned int MemTableCollection<TYPE_MemTable, MAX_TABLE_NUM>::Size()
 
 
 #endif
+
+
+
+
 
 
 
