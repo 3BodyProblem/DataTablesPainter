@@ -20,8 +20,8 @@ class CollisionHash
 	{
 	public:
 		T_ListNode() : nDataPos( -1 ), pNextNode( NULL ), nHashKey( 0 ) {};
-		bool			IsNull()	{	return nDataPos < 0;	}	///< 节点是否有有效值
-		bool			HasNext()	{	return pNextNode != NULL;	}///< 节点是否有下一个值
+		bool			IsNull()	{	return nDataPos < 0;	}		///< 节点是否有有效值
+		bool			HasNext()	{	return pNextNode != NULL;	}	///< 节点是否有下一个值
 		void			Clear()		{ nDataPos = -1; pNextNode = NULL; nHashKey = 0; }
 	public:
 		T_KEY_TYPE		nHashKey;									///< 健值保存

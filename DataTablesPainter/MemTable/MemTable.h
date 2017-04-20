@@ -29,9 +29,10 @@ public:
 	class TableMeta
 	{
 	public:
-		TableMeta( unsigned int nRecordWidth, unsigned int nKeyStrLen = 20 );
+		TableMeta( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen = 20 );
 		void			Clear();
 	public:
+		unsigned int	m_nBindID;			///< 即外部的MessageID
 		unsigned int	m_nRecordWidth;		///< 记录长度设定
 		unsigned int	m_nKeyStrLen;		///< 记录数据块，头nKeyStrLen位，为本数据表的主键字符串
 	};

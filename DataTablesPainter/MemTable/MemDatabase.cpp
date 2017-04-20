@@ -5,7 +5,7 @@ namespace MemoryCollection
 {
 
 
-MemDatabase::MemDatabase( unsigned int nMaxTablesNum )
+MemDatabase::MemDatabase()
 	: m_nUsedTableNum( 0 )
 {
 }
@@ -16,11 +16,11 @@ void MemDatabase::Clear()
 	m_HashTableOfPostion.Clear();
 }
 
-bool MemDatabase::AllotTable4MsgID( unsigned int nMsgID, unsigned int nMsgSize )
+bool MemDatabase::AllotTable4MsgID( VariableRecordTable::TableMeta& refTableMeta )
 {
 	int		nResult = -1;
 
-	if( (nResult=m_HashTableOfPostion.SetHashPair( nMsgID, struct T_TABLE_POS_INF(m_nUsedTableNum, m_arrayQuotationTables[m_nUsedTableNum].size()) )) == 0 )
+	if( (nResult=m_HashTableOfPostion.SetHashPair( refTableMeta.m_nBindID, struct T_TABLE_POS_INF(m_nUsedTableNum, -1) )) == 0 )
 	{
 		++m_nUsedTableNum;
 	}
@@ -32,9 +32,7 @@ VariableRecordTable* MemDatabase::QueryTableByMsgID( unsigned int nMsgID )
 {
 	struct T_TABLE_POS_INF	InfoPosition = m_HashTableOfPostion[nMsgID];
 
-//	return &m_vctQuotationTables[InfoPosition.nTablePosition];
-
-	return NULL;
+	return &m_arrayQuotationTables[InfoPosition.nTablePosition];
 }
 
 

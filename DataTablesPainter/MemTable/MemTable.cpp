@@ -4,8 +4,8 @@
 namespace MemoryCollection
 {
 
-VariableRecordTable::TableMeta::TableMeta( unsigned int nRecordWidth, unsigned int nKeyStrLen )
-	: m_nRecordWidth( nRecordWidth ), m_nKeyStrLen( nKeyStrLen )
+VariableRecordTable::TableMeta::TableMeta( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen )
+	: m_nBindID( nBindID ), m_nRecordWidth( nRecordWidth ), m_nKeyStrLen( nKeyStrLen )
 {
 }
 
