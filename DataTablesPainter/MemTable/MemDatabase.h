@@ -20,13 +20,13 @@ struct T_TABLE_POS_INF
 {
 	T_TABLE_POS_INF() { nTablePosition = -1; nDataPosition = -1; }
 	T_TABLE_POS_INF( unsigned int nTablePos, unsigned int nDataPos ) { nTablePosition = nTablePos; nDataPosition = nDataPos; }
-/*	bool			Empty()
-	{ 
+	bool			Empty()
+	{
 		if( nDataPosition < 0 )
 			return true;
 		else
 			return false;
-	}*/
+	}
 	int				nTablePosition;			///< Ê¹ÓÃÊý¾Ý±íµÄË÷ÒýÎ»ÖÃ
 	int				nDataPosition;			///< ¼ÇÂ¼ÔÚÊý¾Ý±íÖÐµÄÎ»ÖÃ
 };
@@ -39,7 +39,7 @@ typedef CollisionHash<unsigned int, struct T_TABLE_POS_INF>	TPostionHash;	///< ¹
 /**
  * @class			MemDatabase
  * @brief			ÄÚ´æÊý¾Ý¿â(ÄÚ´æ±íÎ¬»¤´æÈ¡³Ø)
- * @detail			¼ÇÂ¼Ã¿¸ömessageid¶ÔÓ¦Êý¾Ý½á¹¹µÄ³¤¶ÈºÍ·ÖÅäµÄºÏÊÊµÄÊý¾Ý±íÎ»ÖÃ
+ * @detail			¼ÇÂ¼Ã¿¸öBindID(messageid)¶ÔÓ¦Êý¾Ý½á¹¹µÄ³¤¶ÈºÍ·ÖÅäµÄºÏÊÊµÄÊý¾Ý±íÎ»ÖÃ
 					&&
 					²¢ÇÒ¸ú¾ÝÒÔÉÏ¼ÇÂ¼½øÐÐÑ¡Ôñ+´æÈ¡
  * @author			barry
@@ -50,10 +50,11 @@ class MemDatabase
 public:
 	MemDatabase();
 
+public:
 	/**
 	 * @brief					ÇåÀíËùÓÐÊý¾Ý
 	 */
-	void						Clear();
+	void						FreeTables();
 
 	/**
 	 * @brief					¸ù¾ÝÏûÏ¢idºÍÏûÏ¢³¤¶È£¬½øÐÐºÏÊÊµÄÊý¾Ý±íÅäÖÃ£¨ÔÚÔ¤±¸±íÖÐÅäÖÃ¶ÔÓ¦µÄÕ¼ÓÃ¹ØÏµ£©
@@ -62,15 +63,26 @@ public:
 								>0					ºöÂÔ£¨³É¹¦£©
 								<0					ÅäÖÃ³ö´í
 	 */
-	bool						AllotTable4MsgID( VariableRecordTable::TableMeta& refTableMeta );
+	bool						AllotNewTable( VariableRecordTable::TableMeta& refTableMeta );
 
 	/**
 	 * @brief					¸ù¾ÝMessageIDÈ¡µÃÒÑ¾­´æÔÚµÄ»òÕß·ÖÅäÒ»¸öÐÂµÄÄÚ´æ±íµÄÒýÓÃ
-	 * @detail					±¾º¯Êý¶ÔÃ¿¸ömessageidÎ¬»¤Ò»¸öÎ¨Ò»ÇÒ¶ÔÓ¦µÄÄÚ´æ±í£¬¸ù¾ÝmsgidÖµ·µ»ØÒÑ¾­´æÔÚµÄ£¬»òÐÂ½¨ºó·µ»Ø
-	 * @param[in]				nMsgID				MessageID
+	 * @detail					±¾º¯Êý¶ÔÃ¿¸ömessageidÎ¬»¤Ò»¸öÎ¨Ò»ÇÒ¶ÔÓ¦µÄÄÚ´æ±í£¬¸ù¾ÝnBindIDÖµ·µ»ØÒÑ¾­´æÔÚµÄ£¬»òÐÂ½¨ºó·µ»Ø
+	 * @param[in]				nBindID				MessageID
 	 * @return					·µ»ØÒÑ¾­´æÔÚµÄÄÚ´æ±í»òÐÂ½¨µÄÄÚ´æ±í
 	 */
-	VariableRecordTable*		QueryTableByMsgID( unsigned int nMsgID );
+	VariableRecordTable*		QueryTableByID( unsigned int nBindID );
+
+public:
+	/**
+	 * @brief					´ÓÓ²ÅÌ»Ö¸´ËùÓÐÊý¾Ý
+	 */
+	bool						LoadFromDisk();
+
+	/**
+	 * @brief					½«ËùÓÐÊý¾Ý´æÅÌ
+	 */
+	bool						SaveToDisk();
 
 private:
 	TPostionHash				m_HashTableOfPostion;						///< ¹þÏ¡±í,msgidËùÔÚµÄÊý¾ÝÑ¡ÔñÀàÐÍ

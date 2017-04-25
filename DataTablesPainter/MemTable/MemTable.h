@@ -31,6 +31,7 @@ public:
 	public:
 		TableMeta( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen = 20 );
 		void			Clear();
+		bool			IsEngaged();
 	public:
 		unsigned int	m_nBindID;			///< 即外部的MessageID
 		unsigned int	m_nRecordWidth;		///< 记录长度设定
@@ -40,6 +41,18 @@ public:
 	VariableRecordTable();
 	~VariableRecordTable();
 
+	/**
+	 * @brief								初始化数据表元信息
+	 * @param[in]							refMeta					数据表元信息结构
+	 */
+	void									Initialize( const TableMeta& refMeta );
+
+	/**
+	 * @brief								释放
+	 */
+	void									Release();
+
+public:
 	/**
 	 * @brief								追加新数据
 	 * @param[in]							refRecord				追加的数据

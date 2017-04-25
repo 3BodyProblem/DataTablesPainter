@@ -15,6 +15,11 @@ void VariableRecordTable::TableMeta::Clear()
 	m_nRecordWidth = 0;
 }
 
+bool VariableRecordTable::TableMeta::IsEngaged()
+{
+	return 0 != m_nRecordWidth;
+}
+
 VariableRecordTable::VariableRecordTable()
 	: m_oTableMeta( 0, 0 ), m_pRecordsBuffer( NULL )
 	, m_nMaxBufferSize( 0 ), m_nCurrentDataSize( 0 )
@@ -31,6 +36,18 @@ VariableRecordTable::~VariableRecordTable()
 		::free( m_pRecordsBuffer );
 		m_pRecordsBuffer = NULL;
 	}
+}
+
+void VariableRecordTable::Initialize( const VariableRecordTable::TableMeta& refMeta )
+{
+	Release();
+
+	m_oTableMeta = refMeta;
+}
+
+void VariableRecordTable::Release()
+{
+	m_oTableMeta.Clear();
 }
 
 bool VariableRecordTable::EnlargeBuffer( unsigned long nAllocItemNum )

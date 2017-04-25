@@ -3,6 +3,7 @@
 
 
 #include <exception>
+#include <functional>
 #include <algorithm>
 
 
@@ -22,7 +23,7 @@ class CollisionHash
 		T_ListNode() : nDataPos( -1 ), pNextNode( NULL ), nHashKey( 0 ) {};
 		bool			IsNull()	{	return nDataPos < 0;	}		///< 节点是否有有效值
 		bool			HasNext()	{	return pNextNode != NULL;	}	///< 节点是否有下一个值
-		void			Clear()		{ nDataPos = -1; pNextNode = NULL; nHashKey = 0; }
+		void			Clear()		{	nDataPos = -1; pNextNode = NULL; nHashKey = 0;	}
 	public:
 		T_KEY_TYPE		nHashKey;									///< 健值保存
 		int				nDataPos;									///< 数据所在的索引位置
@@ -42,12 +43,12 @@ public:
 	/**
 	 * @brief			设置键值对
 	 * @param[in]		nKey		键值
-	 * @param[in\		nValue		数值
+	 * @param[in\		oData		数值
 	 * @return			=0			设置成功
 						>1			已经存在，不需要新建
 						<0			失败
 	 */
-	int					SetHashPair( T_KEY_TYPE nKey, T_VALUE_TYPE nValue );
+	int					SetHashPair( T_KEY_TYPE nKey, T_VALUE_TYPE oData );
 
 	/**
 	 * @brief			清空所有数据
@@ -82,7 +83,7 @@ void CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::C
 }
 
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
-int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::SetHashPair( T_KEY_TYPE nKey, T_VALUE_TYPE nValue )
+int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::SetHashPair( T_KEY_TYPE nKey, T_VALUE_TYPE oData )
 {
 	T_KEY_TYPE				nKeyPos = nKey % MAX_BUCKET_SIZE;
 	struct T_ListNode*		pNode = m_BucketOfHash + nKeyPos;
@@ -94,7 +95,7 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Se
 
 	if( true == pNode->IsNull() )
 	{
-		m_ArrayOfData[m_nUsedNumOfArrayData] = nValue;
+		m_ArrayOfData[m_nUsedNumOfArrayData] = oData;
 		pNode->nDataPos = m_nUsedNumOfArrayData++;
 		return 0;
 	}
@@ -110,7 +111,7 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Se
 		{
 			struct T_ListNode* pNewNodeOfCollision = m_CollisionBucket+m_nUsedNumOfCollisionBucket++;
 
-			m_ArrayOfData[m_nUsedNumOfArrayData] = nValue;
+			m_ArrayOfData[m_nUsedNumOfArrayData] = oData;
 			pNewNodeOfCollision->nDataPos = m_nUsedNumOfArrayData++;
 			pNode->pNextNode = pNewNodeOfCollision;
 
