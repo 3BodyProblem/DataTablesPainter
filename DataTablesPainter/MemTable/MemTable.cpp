@@ -92,7 +92,7 @@ bool DynamicTable::EnlargeBuffer( unsigned long nAllocItemNum )
 	return true;
 }
 
-DyncRecord DynamicTable::SelectRecord( int nRecordIndex )
+I_Record DynamicTable::SelectRecord( int nRecordIndex )
 {
 	if( nRecordIndex < 0 )
 	{
@@ -109,7 +109,7 @@ DyncRecord DynamicTable::SelectRecord( int nRecordIndex )
 	return DyncRecord( m_pRecordsBuffer+nRecordOffset, m_oTableMeta.m_nRecordWidth );
 }
 
-int DynamicTable::InsertRecord( const DyncRecord& refRecord )
+int DynamicTable::InsertRecord( const I_Record& refRecord )
 {
 	CriticalLock			lock( m_oCSLock );
 

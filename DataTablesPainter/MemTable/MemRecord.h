@@ -2,6 +2,9 @@
 #define	__MEM_TABLE__MEM_RECORD_H__
 
 
+#include "../Interface.h"
+
+
 #pragma pack(1)
 namespace MemoryCollection
 {
@@ -41,7 +44,7 @@ private:
  * @class				DyncRecord
  * @brief				带主键的数据体封装
  */
-class DyncRecord
+class DyncRecord : public I_Record
 {
 public:
 	/**
@@ -69,7 +72,12 @@ public:
 									==0								不需要copy，目标和源头数据完全一样
 									<0								出现错误
 	 */
-	int								CloneFrom( const DyncRecord& refRecord );
+	int								CloneFrom( const I_Record& refRecord );
+
+	/**
+	 * @brief						取得数据地址
+	 */
+	const char*						GetPtr() const;
 
 	/**
 	 * @brief						数据长度

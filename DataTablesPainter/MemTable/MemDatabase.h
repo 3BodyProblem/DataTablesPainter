@@ -4,6 +4,7 @@
 
 #include <vector>
 #include "MemTable.h"
+#include "../Interface.h"
 
 
 namespace MemoryCollection
@@ -44,7 +45,7 @@ typedef CollisionHash<unsigned int, struct T_TABLE_POS_INF>	TPostionHash;	///< ¹
  * @author			barry
  * @date			2017/4/2
  */
-class MemDatabase
+class MemDatabase : public I_Database
 {
 public:
 	MemDatabase();
@@ -52,12 +53,14 @@ public:
 public:
 	/**
 	 * @brief					¸ù¾ÝÏûÏ¢idºÍÏûÏ¢³¤¶È£¬½øÐÐºÏÊÊµÄÊý¾Ý±íÅäÖÃ£¨ÔÚÔ¤±¸±íÖÐÅäÖÃ¶ÔÓ¦µÄÕ¼ÓÃ¹ØÏµ£©
-	 * @param[in]				refTableMeta		Êý¾ÝÔªÔªÐÅÏ¢
+	 * @param[in]				nBindID				Êý¾ÝÀàÐÎ±êÊ¶ºÅ
+	 * @param[in]				nRecordWidth		Êý¾Ý³¤¶È
+	 * @param[in]				nKeyStrLen			Ö÷¼ü³¤¶È
 	 * @return					=0					ÅäÖÃ³É¹¦
 								>0					ºöÂÔ£¨³É¹¦£©
 								<0					ÅäÖÃ³ö´í
 	 */
-	bool						CreateTable( DynamicTable::TableMeta& refTableMeta );
+	bool						CreateTable( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen );
 
 	/**
 	 * @brief					¸ù¾ÝMessageIDÈ¡µÃÒÑ¾­´æÔÚµÄ»òÕß·ÖÅäÒ»¸öÐÂµÄÄÚ´æ±íµÄÒýÓÃ
@@ -65,27 +68,13 @@ public:
 	 * @param[in]				nBindID				MessageID
 	 * @return					·µ»ØÒÑ¾­´æÔÚµÄÄÚ´æ±í»òÐÂ½¨µÄÄÚ´æ±í
 	 */
-	DynamicTable*				QueryTable( unsigned int nBindID );
+	I_Table*					QueryTable( unsigned int nBindID );
 
 	/**
 	 * @brief					ÇåÀíËùÓÐÊý¾Ý±í
 	 */
 	void						DeleteTables();
 
-public:
-	/**
-	 * @brief					¸ù¾ÝË³ÐòË÷ÒýÖµ£¬È¡µÃÊý¾Ý±íÒýÓÃ
-	 * @return					NULL			ÎÞÐ§µÄË÷ÒýÖµ»á·µ»Ønull
-	 */
-	DynamicTable*				operator[]( unsigned int nTableIndex );
-
-	/**
-	 * @brief					È¡µÃÊý¾Ý±íµÄÊýÁ¿
-	 * @return					·µ»ØÍ³¼ÆÖµ
-	 */
-	unsigned int				GetTableCount();
-
-public:
 	/**
 	 * @brief					´ÓÓ²ÅÌ»Ö¸´ËùÓÐÊý¾Ý
 	 */
@@ -95,6 +84,19 @@ public:
 	 * @brief					½«ËùÓÐÊý¾Ý´æÅÌ
 	 */
 	bool						SaveToDisk( const char* pszDataFile );
+
+public:
+	/**
+	 * @brief					¸ù¾ÝË³ÐòË÷ÒýÖµ£¬È¡µÃÊý¾Ý±íÒýÓÃ
+	 * @return					NULL			ÎÞÐ§µÄË÷ÒýÖµ»á·µ»Ønull
+	 */
+	I_Table*					operator[]( unsigned int nTableIndex );
+
+	/**
+	 * @brief					È¡µÃÊý¾Ý±íµÄÊýÁ¿
+	 * @return					·µ»ØÍ³¼ÆÖµ
+	 */
+	unsigned int				GetTableCount();
 
 private:
 	CriticalObject				m_oCSLock;									///< ÄÚ´æ±íËø

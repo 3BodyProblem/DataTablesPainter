@@ -10,6 +10,12 @@ class I_Record
 {
 public:
 	/**
+	 * @brief						记录对象为无效
+	 * @return						true							无效对象
+	 */
+	virtual bool					IsNone() const;
+
+	/**
 	 * @brief						记录体deeply copy
 	 * @param[in]					refRecord						内存copy的源头
 	 * @return						==1								影响的数量
@@ -100,6 +106,18 @@ public:
 	 */
 	virtual bool				SaveToDisk( const char* pszDataFile ) = 0;
 };
+
+
+/**
+ * @class				DBFactory
+ * @brief				内存数据分配管理工厂类
+ */
+class DBFactory
+{
+public:
+	DBFactory();
+};
+
 
 
 

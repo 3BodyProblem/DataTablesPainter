@@ -6,17 +6,18 @@
 
 extern "C"
 {
-	__declspec(dllexport) int  StartWork()
+	__declspec(dllexport) DBFactory&  GetFactoryObject()
 	{
-		MemoryCollection::MemDatabase	db;
+		static	DBFactory		objFactory;
 
-		return 0;
+		return objFactory;
 	}
 
 	__declspec(dllexport) void	ExecuteUnitTest()
 	{
-		printf( "aaaaaa\n" );
+		::printf( "\n\n---------------------- [Begin] -------------------------\n" );
 		ExecuteTestCase();
+		::printf( "----------------------  [End]  -------------------------\n\n\n" );
 	}
 
 }

@@ -5,6 +5,7 @@
 #pragma warning(disable:4244)
 #include <vector>
 #include "MemRecord.h"
+#include "../Interface.h"
 #include "../Infrastructure/Lock.h"
 #include "../Infrastructure/Hash.h"
 
@@ -22,7 +23,7 @@ typedef CollisionHash<unsigned int,unsigned int>	TRecordHash;	///< 哈希表(key,in
  * @detail									数据表中记录的长度可以在构造时具体指定
  * @note									本表只支持结构头部为string类型的定长主键的数据结构体
  */
-class DynamicTable
+class DynamicTable : public I_Table
 {
 public:
 	/**
@@ -62,14 +63,14 @@ public:
 	 * @return								==0						增加成功
 											!=0						失败
 	 */
-	int										InsertRecord( const DyncRecord& refRecord ); 
+	int										InsertRecord( const I_Record& refRecord ); 
 
 	/**
 	 * @brief								索引出记录对象
 	 * @param[in]							Index					记录索引
 	 * @return								返回记录对象
 	 */
-	DyncRecord								SelectRecord( int nRecordIndex );
+	I_Record								SelectRecord( int nRecordIndex );
 
 private:
 	/**

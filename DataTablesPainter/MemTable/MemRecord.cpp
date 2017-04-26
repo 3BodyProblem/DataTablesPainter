@@ -97,6 +97,11 @@ unsigned int DyncRecord::Length() const
 	return m_nRecordLen;
 }
 
+const char* DyncRecord::GetPtr() const
+{
+	return m_pRecordData;
+}
+
 bool DyncRecord::IsNone() const
 {
 	if( NULL == m_pRecordData )
@@ -107,11 +112,16 @@ bool DyncRecord::IsNone() const
 	return false;
 }
 
-int DyncRecord::CloneFrom( const DyncRecord& refRecord )
+int DyncRecord::CloneFrom( const I_Record& refRecord )
 {
-	if( 0 != ::memcmp( m_pRecordData, refRecord.m_pRecordData, refRecord.Length() ) )
+	if( true == refRecord.IsNone() )
 	{
-		memcpy( m_pRecordData, refRecord.m_pRecordData, refRecord.Length() );
+		return 0;
+	}
+
+	if( 0 != ::memcmp( m_pRecordData, refRecord.GetPtr(), refRecord.Length() ) )
+	{
+		memcpy( m_pRecordData, refRecord.GetPtr(), refRecord.Length() );
 
 		return 1;
 	}

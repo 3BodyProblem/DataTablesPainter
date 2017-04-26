@@ -1,5 +1,11 @@
 #include "Interface.h"
+#include "stddef.h"
 
+
+bool I_Record::IsNone() const
+{
+	return true;
+}
 
 int I_Record::CloneFrom( const I_Record& refRecord )
 {
@@ -21,6 +27,9 @@ int I_Record::GetSerial() const
 	return 0;
 }
 
+DBFactory::DBFactory()
+{
+}
 
 
 

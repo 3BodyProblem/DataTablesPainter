@@ -78,6 +78,7 @@ TEST_F( TestDemoStatic, Loop )
 
 void QLXEnDeCodeTestEnv::SetUp()
 {
+	ASSERT_EQ( true, true );
 /*	IPbOperation* pListEncodeOperation[] = { &EnMarket, &EnStatic, &EnSnap, &EnTrade, &EnIndex, &EnVP };///< 需要注册的protobuf的encode策略对象
 	IPbOperation* pListDecodeOperation[] = { &DeMarket, &DeStatic, &DeSnap, &DeTrade, &DeIndex, &DeVP };///< 需要注册的protobuf的encode策略对象
 
@@ -104,15 +105,10 @@ void QLXEnDeCodeTestEnv::TearDown()
 
 
 ///< ------------------ 单元测试导出函数定义 -------------------------------
-///< ------------------ 单元测试导出函数定义 -------------------------------
-///< ------------------ 单元测试导出函数定义 -------------------------------
-///< ------------------ 单元测试导出函数定义 -------------------------------
 
 
 /**
  * @brief		初始化gtest工作环境
-				&&
-				并设置测试Case名称(filter)
  */
 void ExecuteTestCase()
 {
@@ -125,6 +121,7 @@ void ExecuteTestCase()
 		s_bInit = true;
 		testing::AddGlobalTestEnvironment( new QLXEnDeCodeTestEnv() );
 		testing::InitGoogleTest( &nArgc, pszArgv );
+		RUN_ALL_TESTS();
 	}
 }
 
