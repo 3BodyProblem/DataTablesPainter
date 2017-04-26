@@ -10,18 +10,19 @@ MemDatabase::MemDatabase()
 {
 }
 
-void MemDatabase::FreeTables()
+void MemDatabase::DeleteTables()
 {
 	m_nUsedTableNum = 0;					///< 引用归零
 	m_HashTableOfPostion.Clear();			///< 哈稀表归零
 }
 
-bool MemDatabase::AllotNewTable( VariableRecordTable::TableMeta& refTableMeta )
+bool MemDatabase::CreateTable( DynamicTable::TableMeta& refTableMeta )
 {
-	int		nResult = -1;
+	int				nResult = -1;
+	CriticalLock	lock( m_oCSLock );
 
 	///< 分配设置好数据表索引哈稀
-	if( (nResult=m_HashTableOfPostion.SetHashPair( refTableMeta.m_nBindID, struct T_TABLE_POS_INF(m_nUsedTableNum, -1) )) == 0 )
+	if( (nResult=m_HashTableOfPostion.SetHashPair( refTableMeta.m_nBindID, struct T_TABLE_POS_INF(m_nUsedTableNum) )) == 0 )
 	{
 		m_arrayQuotationTables[m_nUsedTableNum].Initialize( refTableMeta );	///< 使用数据表元信息结构初始化刚分配的数据表对象
 		++m_nUsedTableNum;													///< 引用计算加一
@@ -30,8 +31,9 @@ bool MemDatabase::AllotNewTable( VariableRecordTable::TableMeta& refTableMeta )
 	return (nResult >= 0) ? true : false;
 }
 
-VariableRecordTable* MemDatabase::QueryTableByID( unsigned int nBindID )
+DynamicTable* MemDatabase::QueryTable( unsigned int nBindID )
 {
+	CriticalLock			lock( m_oCSLock );
 	struct T_TABLE_POS_INF	InfoPosition = m_HashTableOfPostion[nBindID];	///< 取得哈稀索引信息
 
 	if( true == InfoPosition.Empty() )										///< 该数据表索引信息不存在
@@ -42,10 +44,30 @@ VariableRecordTable* MemDatabase::QueryTableByID( unsigned int nBindID )
 	return &m_arrayQuotationTables[InfoPosition.nTablePosition];			///< 返回对应的数据表
 }
 
-bool MemDatabase::LoadFromDisk()
+DynamicTable* MemDatabase::operator[]( unsigned int nTableIndex )
+{
+	CriticalLock	lock( m_oCSLock );
+
+	if( nTableIndex >= m_nUsedTableNum || nTableIndex >= MAX_TABBLE_NO )
+	{
+		return NULL;
+	}
+
+	return &(m_arrayQuotationTables[nTableIndex]);
+}
+
+unsigned int MemDatabase::GetTableCount()
+{
+	CriticalLock	lock( m_oCSLock );
+
+	return m_nUsedTableNum;
+}
+
+bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 {
 	try
 	{
+		CriticalLock	lock( m_oCSLock );
 
 		return true;
 	}
@@ -61,10 +83,11 @@ bool MemDatabase::LoadFromDisk()
 	return false;
 }
 
-bool MemDatabase::SaveToDisk()
+bool MemDatabase::SaveToDisk( const char* pszDataFile )
 {
 	try
 	{
+		CriticalLock	lock( m_oCSLock );
 
 		return true;
 	}

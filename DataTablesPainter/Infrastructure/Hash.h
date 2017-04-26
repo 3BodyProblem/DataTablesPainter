@@ -10,7 +10,7 @@
 /**
  * @class			UInt2UIntHash
  * @brief			整型值到位置值的哈希映射表
- * @note			默认值的情况下，数据表长度是哈希桶长度的3倍
+ * @note			默认值的情况下，数据表长度是哈希桶长度的3倍(无锁)
  * @author			barry
  * @date			2017/4/2
  */

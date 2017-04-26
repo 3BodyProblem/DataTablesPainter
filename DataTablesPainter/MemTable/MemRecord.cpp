@@ -8,64 +8,33 @@ namespace MemoryCollection
 {
 
 
-RecordWithKey::RecordWithKey( char* pRecord, unsigned int nRecordLen )
-	: m_pRecordData( pRecord ), m_nRecordLen( nRecordLen )
+CodeKey::CodeKey( char* pszCode )
+ : m_pszCode( pszCode ), m_nKeyID( -1 )
 {
 }
 
-RecordWithKey::RecordWithKey( const RecordWithKey& obj )
+int CodeKey::GetKeyID() const
 {
-	m_pRecordData = obj.m_pRecordData;
-	m_nRecordLen = obj.m_nRecordLen;
-}
-
-unsigned int RecordWithKey::Length() const
-{
-	return m_nRecordLen;
-}
-
-bool RecordWithKey::IsNone() const
-{
-	if( NULL == m_pRecordData )
+	if( m_nKeyID >= 0 )
 	{
-		return true;
+		return m_nKeyID;
 	}
 
-	return false;
-}
-
-int RecordWithKey::CloneFrom( const RecordWithKey& refRecord )
-{
-	if( 0 != ::memcmp( m_pRecordData, refRecord.m_pRecordData, refRecord.Length() ) )
-	{
-		memcpy( m_pRecordData, refRecord.m_pRecordData, refRecord.Length() );
-
-		return 1;
-	}
-
-	return 0;
-}
-
-int RecordWithKey::GetSerialInTable() const
-{
-	if( true == IsNone() )
+	if( NULL == m_pszCode )
 	{
 		return -1;
 	}
 
-	char*							pszCodeKey = m_pRecordData;
-	int								nCodeLen = ::strlen( pszCodeKey );
-
-	return GenerateHashKey( pszCodeKey, nCodeLen );
+	return GenHashKey( m_pszCode, ::strlen( m_pszCode ) );
 }
 
-unsigned __int64 RecordWithKey::GenerateHashKey( const char* pszCode, unsigned int nCodeLen )
+unsigned __int64 CodeKey::GenHashKey( const char* pszCode, unsigned int nCodeLen )
 {
 	char							pszMainKey[32] = { 0 };
 	unsigned __int64				nTmpVal = 0;
-	unsigned __int64				nCodeKey = ::pow( 10., 18 );		///< 分配一个hash的基值
+	unsigned __int64				nCodeKey = ::pow( 10., 18 );	///< 分配一个hash的基值
 
-	for( int i = 0; i < nCodeLen; i++ )
+	for( unsigned int i = 0; i < nCodeLen; i++ )
 	{
 		char	cChar = pszCode[i];
 
@@ -108,6 +77,51 @@ unsigned __int64 RecordWithKey::GenerateHashKey( const char* pszCode, unsigned i
 	nCodeKey += nTmpVal;
 
 	return nCodeKey;
+}
+
+
+DyncRecord::DyncRecord( char* pRecord, unsigned int nRecordLen )
+	: m_pRecordData( pRecord ), m_nRecordLen( nRecordLen ), m_oCodeKey( pRecord )
+{
+}
+
+DyncRecord::DyncRecord( const DyncRecord& obj )
+ : m_oCodeKey( obj.m_pRecordData )
+{
+	m_pRecordData = obj.m_pRecordData;
+	m_nRecordLen = obj.m_nRecordLen;
+}
+
+unsigned int DyncRecord::Length() const
+{
+	return m_nRecordLen;
+}
+
+bool DyncRecord::IsNone() const
+{
+	if( NULL == m_pRecordData )
+	{
+		return true;
+	}
+
+	return false;
+}
+
+int DyncRecord::CloneFrom( const DyncRecord& refRecord )
+{
+	if( 0 != ::memcmp( m_pRecordData, refRecord.m_pRecordData, refRecord.Length() ) )
+	{
+		memcpy( m_pRecordData, refRecord.m_pRecordData, refRecord.Length() );
+
+		return 1;
+	}
+
+	return 0;
+}
+
+int DyncRecord::GetSerial() const
+{
+	return m_oCodeKey.GetKeyID();
 }
 
 

@@ -4,29 +4,29 @@
 namespace MemoryCollection
 {
 
-VariableRecordTable::TableMeta::TableMeta( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen )
+DynamicTable::TableMeta::TableMeta( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen )
 	: m_nBindID( nBindID ), m_nRecordWidth( nRecordWidth ), m_nKeyStrLen( nKeyStrLen )
 {
 }
 
-void VariableRecordTable::TableMeta::Clear()
+void DynamicTable::TableMeta::Clear()
 {
 	m_nKeyStrLen = 0;
 	m_nRecordWidth = 0;
 }
 
-bool VariableRecordTable::TableMeta::IsEngaged()
+bool DynamicTable::TableMeta::IsEngaged()
 {
 	return 0 != m_nRecordWidth;
 }
 
-VariableRecordTable::VariableRecordTable()
+DynamicTable::DynamicTable()
 	: m_oTableMeta( 0, 0 ), m_pRecordsBuffer( NULL )
 	, m_nMaxBufferSize( 0 ), m_nCurrentDataSize( 0 )
 {
 }
 
-VariableRecordTable::~VariableRecordTable()
+DynamicTable::~DynamicTable()
 {
 	if( NULL != m_pRecordsBuffer )
 	{
@@ -38,19 +38,23 @@ VariableRecordTable::~VariableRecordTable()
 	}
 }
 
-void VariableRecordTable::Initialize( const VariableRecordTable::TableMeta& refMeta )
+void DynamicTable::Initialize( const DynamicTable::TableMeta& refMeta )
 {
+	CriticalLock	lock( m_oCSLock );
+
 	Release();
 
 	m_oTableMeta = refMeta;
 }
 
-void VariableRecordTable::Release()
+void DynamicTable::Release()
 {
+	CriticalLock	lock( m_oCSLock );
+
 	m_oTableMeta.Clear();
 }
 
-bool VariableRecordTable::EnlargeBuffer( unsigned long nAllocItemNum )
+bool DynamicTable::EnlargeBuffer( unsigned long nAllocItemNum )
 {
 	unsigned int	nNewBufferSize = m_oTableMeta.m_nRecordWidth * nAllocItemNum;
 
@@ -88,24 +92,27 @@ bool VariableRecordTable::EnlargeBuffer( unsigned long nAllocItemNum )
 	return true;
 }
 
-RecordWithKey VariableRecordTable::operator[]( int nIndex )
+DyncRecord DynamicTable::SelectRecord( int nRecordIndex )
 {
-	if( nIndex < 0 )
+	if( nRecordIndex < 0 )
 	{
-		return RecordWithKey( NULL, 0 );
+		return DyncRecord( NULL, 0 );
 	}
 
-	unsigned int		nRecordOffset = m_oTableMeta.m_nRecordWidth * nIndex;
+	CriticalLock		lock( m_oCSLock );
+	unsigned int		nRecordOffset = m_oTableMeta.m_nRecordWidth * nRecordIndex;
 	if( nRecordOffset >= (m_nMaxBufferSize-m_oTableMeta.m_nRecordWidth) )
 	{
-		return RecordWithKey( NULL, 0 );
+		return DyncRecord( NULL, 0 );
 	}
 
-	return RecordWithKey( m_pRecordsBuffer+nRecordOffset, m_oTableMeta.m_nRecordWidth );
+	return DyncRecord( m_pRecordsBuffer+nRecordOffset, m_oTableMeta.m_nRecordWidth );
 }
 
-int VariableRecordTable::PushBack( const RecordWithKey& refRecord )
+int DynamicTable::InsertRecord( const DyncRecord& refRecord )
 {
+	CriticalLock			lock( m_oCSLock );
+
 	if( NULL == m_pRecordsBuffer || m_nMaxBufferSize == m_nCurrentDataSize )
 	{	///< 内存未分配的情况 或 内存已经用完的情况
 		if( false == EnlargeBuffer() )
@@ -114,9 +121,9 @@ int VariableRecordTable::PushBack( const RecordWithKey& refRecord )
 		}
 	}
 
-	unsigned int		nDataSeqKey = refRecord.GetSerialInTable();
+	unsigned int		nDataSeqKey = refRecord.GetSerial();
 	unsigned int		nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * nDataSeqKey;
-	RecordWithKey		oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
+	DyncRecord			oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
 
 	if( nDataOffsetIndex >= (m_nMaxBufferSize-refRecord.Length()) )
 	{

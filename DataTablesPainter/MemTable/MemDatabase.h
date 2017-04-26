@@ -18,21 +18,20 @@ namespace MemoryCollection
  */
 struct T_TABLE_POS_INF
 {
-	T_TABLE_POS_INF() { nTablePosition = -1; nDataPosition = -1; }
-	T_TABLE_POS_INF( unsigned int nTablePos, unsigned int nDataPos ) { nTablePosition = nTablePos; nDataPosition = nDataPos; }
+	T_TABLE_POS_INF() { nTablePosition = -1; }
+	T_TABLE_POS_INF( unsigned int nTablePos ) { nTablePosition = nTablePos; }
 	bool			Empty()
 	{
-		if( nDataPosition < 0 )
+		if( nTablePosition < 0 )
 			return true;
 		else
 			return false;
 	}
 	int				nTablePosition;			///< 使用数据表的索引位置
-	int				nDataPosition;			///< 记录在数据表中的位置
 };
 
 
-const unsigned int MAX_TABBLE_NO = 128;										///< 最多可分配的数据表的数量
+const unsigned int MAX_TABBLE_NO = 128*2;									///< 最多可分配的数据表的数量
 typedef CollisionHash<unsigned int, struct T_TABLE_POS_INF>	TPostionHash;	///< 哈希表
 
 
@@ -52,18 +51,13 @@ public:
 
 public:
 	/**
-	 * @brief					清理所有数据
-	 */
-	void						FreeTables();
-
-	/**
 	 * @brief					根据消息id和消息长度，进行合适的数据表配置（在预备表中配置对应的占用关系）
 	 * @param[in]				refTableMeta		数据元元信息
 	 * @return					=0					配置成功
 								>0					忽略（成功）
 								<0					配置出错
 	 */
-	bool						AllotNewTable( VariableRecordTable::TableMeta& refTableMeta );
+	bool						CreateTable( DynamicTable::TableMeta& refTableMeta );
 
 	/**
 	 * @brief					根据MessageID取得已经存在的或者分配一个新的内存表的引用
@@ -71,22 +65,41 @@ public:
 	 * @param[in]				nBindID				MessageID
 	 * @return					返回已经存在的内存表或新建的内存表
 	 */
-	VariableRecordTable*		QueryTableByID( unsigned int nBindID );
+	DynamicTable*				QueryTable( unsigned int nBindID );
+
+	/**
+	 * @brief					清理所有数据表
+	 */
+	void						DeleteTables();
+
+public:
+	/**
+	 * @brief					根据顺序索引值，取得数据表引用
+	 * @return					NULL			无效的索引值会返回null
+	 */
+	DynamicTable*				operator[]( unsigned int nTableIndex );
+
+	/**
+	 * @brief					取得数据表的数量
+	 * @return					返回统计值
+	 */
+	unsigned int				GetTableCount();
 
 public:
 	/**
 	 * @brief					从硬盘恢复所有数据
 	 */
-	bool						LoadFromDisk();
+	bool						LoadFromDisk( const char* pszDataFile );
 
 	/**
 	 * @brief					将所有数据存盘
 	 */
-	bool						SaveToDisk();
+	bool						SaveToDisk( const char* pszDataFile );
 
 private:
+	CriticalObject				m_oCSLock;									///< 内存表锁
 	TPostionHash				m_HashTableOfPostion;						///< 哈稀表,msgid所在的数据选择类型
-	VariableRecordTable			m_arrayQuotationTables[MAX_TABBLE_NO];		///< 行情动态表集合
+	DynamicTable				m_arrayQuotationTables[MAX_TABBLE_NO];		///< 行情动态表集合
 	unsigned int				m_nUsedTableNum;							///< 已经使用珠数据表数量
 };
 
