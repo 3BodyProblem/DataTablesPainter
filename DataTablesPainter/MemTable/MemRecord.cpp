@@ -30,6 +30,8 @@ __int64 CodeKey::GetKeyID() const
 	return m_nKeyID;
 }
 
+
+
 __int64 CodeKey::GenHashKey( const char* pszCode, unsigned int nCodeLen )
 {
 	char				pszMainKey[32] = { 0 };
@@ -65,14 +67,7 @@ __int64 CodeKey::GenHashKey( const char* pszCode, unsigned int nCodeLen )
 		}
 		else														///< 其他情况
 		{
-			if( nTmpVal == 0 )
-			{
-				nTmpVal = cChar;
-			}
-			else
-			{
-				nTmpVal = nTmpVal * 1000 + cChar;
-			}
+			nTmpVal *= 10;
 		}
 	}
 

@@ -64,10 +64,21 @@ public:
 	 * @brief						追加新数据
 	 * @param[in]					pRecord					记录体地址
 	 * @param[in]					nRecordLen				记录体长度
-	 * @return						==0						增加成功
-									!=0						失败
+	 * @return						>0						增加成功
+									=0						记录已经存在，不需要增加
+									<0						失败
 	 */
 	virtual int						InsertRecord( char* pRecord, unsigned int nRecordLen ) = 0; 
+
+	/**
+	 * @brief						更新数据
+	 * @param[in]					pRecord					记录体地址
+	 * @param[in]					nRecordLen				记录体长度
+	 * @return						>0						增加成功
+									=0						记录已经存在，不需要增加
+									<0						失败
+	 */
+	virtual int						UpdateRecord( char* pRecord, unsigned int nRecordLen ) = 0; 
 
 	/**
 	 * @brief						索引出记录对象

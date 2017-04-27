@@ -156,7 +156,43 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen )
 		m_nCurrentDataSize += m_oTableMeta.m_nRecordWidth;
 	}
 
-	return 0;
+	return 1;
+}
+
+int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen )
+{
+	CriticalLock			lock( m_oCSLock );
+	DyncRecord				objRecord( pRecord, nRecordLen );
+	__int64					nDataSeqKey = objRecord.GetMainKey();
+
+	if( NULL == m_pRecordsBuffer || m_nMaxBufferSize <= m_nCurrentDataSize )
+	{	///< 内存未分配的情况 或 内存已经用完的情况
+		if( false == EnlargeBuffer( (0==m_nMaxBufferSize)?1:1024 ) )
+		{
+			return -1;
+		}
+	}
+
+	T_RECORD_POS			recordPostion = m_oHashTableOfIndex[nDataSeqKey];
+	unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * recordPostion.nRecordPos;
+	DyncRecord				oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
+
+	if( true == recordPostion.Empty() )
+	{
+		return 0;
+	}
+
+	if( nDataOffsetIndex >= (m_nMaxBufferSize-nDataOffsetIndex) )
+	{
+		return -3;
+	}
+
+	if( oCurRecord.CloneFrom( objRecord ) >= 0 )
+	{
+		m_nCurrentDataSize += m_oTableMeta.m_nRecordWidth;
+	}
+
+	return 1;
 }
 
 

@@ -56,7 +56,7 @@ void TestCreateNameTable1000_ZeroMemo::TestLocateTable()
 void TestCreateNameTable1000_ZeroMemo::TestInsertRecord()
 {
 	for( int n = 0; n < 10; n++ ) {
-		ASSERT_EQ( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+		ASSERT_LE( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
 	}
 }
 
@@ -74,8 +74,8 @@ void TestCreateNameTable1000_Normal::SetUpTestCase()
 	TestCreateNameTable1000_ZeroMemo::SetUpTestCase();
 
 	///< 静态域：码表清零
-	::sprintf( s_sMsg1000NameTable.SecurityID, "SR123456-C-%u", 2800 );
-	::sprintf( s_sMsg1000NameTable.SecurityName, "测试名称 %d 号单元", 3 );
+	::sprintf( s_sMsg1000NameTable.SecurityID, "OK123456-C-%u", 2800 );
+	::sprintf( s_sMsg1000NameTable.SecurityName, "测试名称 %d 号单元", 1 );
 	s_sMsg1000NameTable.SecurityType = 1024;
 	s_sMsg1000NameTable.Number1 = 1;
 	s_sMsg1000NameTable.Number2 = 2;
@@ -85,7 +85,20 @@ void TestCreateNameTable1000_Normal::SetUpTestCase()
 void TestCreateNameTable1000_Normal::TestInsertRecord()
 {
 	for( int n = 0; n < 10; n++ ) {
-		ASSERT_EQ( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+		ASSERT_LE( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+	}
+}
+
+void TestCreateNameTable1000_Normal::TestUpdateRecord()
+{
+	s_sMsg1000NameTable.Number1 = 1000;
+	s_sMsg1000NameTable.Number2 = 2000;
+	s_sMsg1000NameTable.Number3 = 3000;
+	s_sMsg1000NameTable.SecurityType = 1024*3;
+	::sprintf( s_sMsg1000NameTable.SecurityName, "测试名称 %d 号单元", 2 );
+
+	for( int n = 0; n < 10; n++ ) {
+		ASSERT_LT( 0, s_pTablePtr->UpdateRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
 	}
 }
 
@@ -107,22 +120,47 @@ void TestCreateNameTable1000_Normal::TestSelectRecord()
 
 
 ///< ------------------------ 测试用例定义 ----------------------------------------------------
+///< ------------------------ 测试用例定义 ----------------------------------------------------
+///< ------------------------ 测试用例定义 ----------------------------------------------------
+///< ------------------------ 测试用例定义 ----------------------------------------------------
+///< ------------------------ 测试用例定义 ----------------------------------------------------
+///< ------------------------ 测试用例定义 ----------------------------------------------------
+///< ------------------------ 测试用例定义 ----------------------------------------------------
 
 
 TEST_F( TestCreateNameTable1000_ZeroMemo, InsertOption_ZeroMemoryOfNameTable )
 {
-	TestLocateTable();
+	TestLocateTable();TestInsertRecord();
+	TestLocateTable();TestSelectRecord();
+}
+
+TEST_F( TestCreateNameTable1000_Normal, InsertOptionOfNormalNameTable )
+{
+	TestLocateTable();TestInsertRecord();
+	TestLocateTable();TestSelectRecord();
+}
+
+TEST_F( TestCreateNameTable1000_ZeroMemo, InsertOption_ZeroMemoryOfNameTable_Repeat )
+{
+	TestLocateTable();TestInsertRecord();
+	TestLocateTable();TestSelectRecord();
+}
+
+TEST_F( TestCreateNameTable1000_Normal, InsertOptionOfNormalNameTable_Repeat )
+{
 	TestInsertRecord();
-	TestLocateTable();
 	TestSelectRecord();
 }
 
-
-TEST_F( TestCreateNameTable1000_Normal, InsertOptionOfNameTable )
+TEST_F( TestCreateNameTable1000_Normal, UpdateOptionOfNormalNameTable )
 {
-	TestLocateTable();
-	TestInsertRecord();
-	TestLocateTable();
+	TestUpdateRecord();
+	TestSelectRecord();
+}
+
+TEST_F( TestCreateNameTable1000_Normal, UpdateOptionOfNormalNameTable_Repeat )
+{
+	TestUpdateRecord();
 	TestSelectRecord();
 }
 
@@ -131,11 +169,6 @@ TEST_F( TestCreateNameTable1000_Normal, InsertOptionOfNameTable )
 
 
 I_Database* UnitTestEnv::m_pIDatabase = NULL;
-
-
-UnitTestEnv::UnitTestEnv()
-{
-}
 
 I_Database* UnitTestEnv::GetDatabasePtr()
 {

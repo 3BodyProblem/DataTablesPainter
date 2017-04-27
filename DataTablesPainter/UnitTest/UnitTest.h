@@ -58,6 +58,7 @@ class TestCreateNameTable1000_Normal : public TestCreateNameTable1000_ZeroMemo
 protected:
 	static	void										SetUpTestCase();
 	virtual void										TestInsertRecord();
+	virtual void										TestUpdateRecord();
 	virtual void										TestSelectRecord();
 };
 
@@ -75,14 +76,10 @@ protected:
 class UnitTestEnv : public testing::Environment
 {
 public:
-	UnitTestEnv();
-
-public:
 	/**
 	 * @brief				取单数据库对象指针,从而进行指定测试
 	 */
 	static	I_Database*		GetDatabasePtr();
-
 	void					SetUp();
 	void					TearDown();
 
