@@ -134,13 +134,13 @@ TEST_F( TestCreateNameTable1000_ZeroMemo, InsertOption_ZeroMemoryOfNameTable )
 	TestLocateTable();TestSelectRecord();
 }
 
-TEST_F( TestCreateNameTable1000_Normal, InsertOptionOfNormalNameTable )
+TEST_F( TestCreateNameTable1000_ZeroMemo, InsertOption_ZeroMemoryOfNameTable_Repeat )
 {
 	TestLocateTable();TestInsertRecord();
 	TestLocateTable();TestSelectRecord();
 }
 
-TEST_F( TestCreateNameTable1000_ZeroMemo, InsertOption_ZeroMemoryOfNameTable_Repeat )
+TEST_F( TestCreateNameTable1000_Normal, InsertOptionOfNormalNameTable )
 {
 	TestLocateTable();TestInsertRecord();
 	TestLocateTable();TestSelectRecord();
