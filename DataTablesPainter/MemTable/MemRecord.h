@@ -25,7 +25,7 @@ public:
 	/**
 	 * @brief						取得数据体在数据表中的索引位置值
 	 */
-	int								GetKeyID() const;
+	__int64							GetKeyID() const;
 
 	/**
 	 * @brief						将商品代码hash成数值并返回
@@ -33,9 +33,10 @@ public:
 	 * @param[in]					nCodeLen			最长代码长度
 	 * @return						商品代码的hash值
 	 */
-	static unsigned __int64			GenHashKey( const char* pszCode, unsigned int nCodeLen );
+	static __int64					GenHashKey( const char* pszCode, unsigned int nCodeLen );
+
 private:
-	int								m_nKeyID;					///< 主键值
+	mutable __int64					m_nKeyID;					///< 主键值
 	char*							m_pszCode;					///< 数据结构地址
 };
 
@@ -44,7 +45,7 @@ private:
  * @class				DyncRecord
  * @brief				带主键的数据体封装
  */
-class DyncRecord : public I_Record
+class DyncRecord : public RecordBlock
 {
 public:
 	/**
@@ -60,38 +61,11 @@ public:
 	DyncRecord( const DyncRecord& obj );
 
 	/**
-	 * @brief						记录对象为无效
-	 * @return						true							无效对象
-	 */
-	bool							IsNone() const;
-
-	/**
-	 * @brief						记录体deeply copy
-	 * @param[in]					refRecord						内存copy的源头
-	 * @return						==1								影响的数量
-									==0								不需要copy，目标和源头数据完全一样
-									<0								出现错误
-	 */
-	int								CloneFrom( const I_Record& refRecord );
-
-	/**
-	 * @brief						取得数据地址
-	 */
-	const char*						GetPtr() const;
-
-	/**
-	 * @brief						数据长度
-	 */
-	unsigned int					Length() const;
-
-	/**
 	 * @brief						取得索引号
 	 */
-	int								GetSerial() const;
+	__int64							GetMainKey() const;
 
 private:
-	char*							m_pRecordData;					///< 数据结构地址
-	unsigned int					m_nRecordLen;					///< 数据结构长度
 	CodeKey							m_oCodeKey;						///< 主键对象
 };
 

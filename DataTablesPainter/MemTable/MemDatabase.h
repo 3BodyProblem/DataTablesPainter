@@ -21,13 +21,8 @@ struct T_TABLE_POS_INF
 {
 	T_TABLE_POS_INF() { nTablePosition = -1; }
 	T_TABLE_POS_INF( unsigned int nTablePos ) { nTablePosition = nTablePos; }
-	bool			Empty()
-	{
-		if( nTablePosition < 0 )
-			return true;
-		else
-			return false;
-	}
+	void			Clear()	{	nTablePosition = -1;	}
+	bool			Empty() const	{	if( nTablePosition < 0 )	return true;	else	return false;	}
 	int				nTablePosition;			///< 使用数据表的索引位置
 };
 
@@ -50,7 +45,7 @@ class MemDatabase : public I_Database
 public:
 	MemDatabase();
 
-public:
+public:///< Method Of Interface
 	/**
 	 * @brief					根据消息id和消息长度，进行合适的数据表配置（在预备表中配置对应的占用关系）
 	 * @param[in]				nBindID				数据类形标识号

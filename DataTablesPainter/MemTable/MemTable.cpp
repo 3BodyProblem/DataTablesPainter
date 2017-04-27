@@ -92,47 +92,68 @@ bool DynamicTable::EnlargeBuffer( unsigned long nAllocItemNum )
 	return true;
 }
 
-I_Record DynamicTable::SelectRecord( int nRecordIndex )
+RecordBlock DynamicTable::SelectRecord( char* pKeyStr, unsigned int nKeyLen )
 {
-	if( nRecordIndex < 0 )
+	if( NULL == pKeyStr || nKeyLen <= 0 )
 	{
-		return DyncRecord( NULL, 0 );
+		return RecordBlock( NULL, 0 );
 	}
 
-	CriticalLock		lock( m_oCSLock );
-	unsigned int		nRecordOffset = m_oTableMeta.m_nRecordWidth * nRecordIndex;
-	if( nRecordOffset >= (m_nMaxBufferSize-m_oTableMeta.m_nRecordWidth) )
+	DyncRecord				objRecord( pKeyStr, nKeyLen );
+	__int64					nDataSeqKey = objRecord.GetMainKey();
+	CriticalLock			lock( m_oCSLock );
+	T_RECORD_POS			recordPostion = m_oHashTableOfIndex[nDataSeqKey];
+	unsigned int			nRecordOffset = m_oTableMeta.m_nRecordWidth * recordPostion.nRecordPos;
+
+	if( nRecordOffset >= (m_nMaxBufferSize-nRecordOffset) )
 	{
-		return DyncRecord( NULL, 0 );
+		return RecordBlock( NULL, 0 );
 	}
 
-	return DyncRecord( m_pRecordsBuffer+nRecordOffset, m_oTableMeta.m_nRecordWidth );
+	return RecordBlock( m_pRecordsBuffer+nRecordOffset, m_oTableMeta.m_nRecordWidth );
 }
 
-int DynamicTable::InsertRecord( const I_Record& refRecord )
+int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen )
 {
 	CriticalLock			lock( m_oCSLock );
+	DyncRecord				objRecord( pRecord, nRecordLen );
+	__int64					nDataSeqKey = objRecord.GetMainKey();
 
-	if( NULL == m_pRecordsBuffer || m_nMaxBufferSize == m_nCurrentDataSize )
+	if( NULL == m_pRecordsBuffer || m_nMaxBufferSize <= m_nCurrentDataSize )
 	{	///< 内存未分配的情况 或 内存已经用完的情况
-		if( false == EnlargeBuffer() )
+		if( false == EnlargeBuffer( (0==m_nMaxBufferSize)?1:1024 ) )
 		{
 			return -1;
 		}
 	}
 
-	unsigned int		nDataSeqKey = refRecord.GetSerial();
-	unsigned int		nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * nDataSeqKey;
-	DyncRecord			oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
-
-	if( nDataOffsetIndex >= (m_nMaxBufferSize-refRecord.Length()) )
-	{
+	int		nInsertAffect = m_oHashTableOfIndex.NewKey( nDataSeqKey, T_RECORD_POS(0) );
+	if( nInsertAffect < 0 )	///< 新增记录:	位置为, 第 0 个索引位置
+	{	///< 记录不存在，新增成功的情况
 		return -2;
 	}
-
-	if( oCurRecord.CloneFrom( refRecord ) > 0 )
+	else if( 0 == nInsertAffect )
 	{
-		++m_nCurrentDataSize;
+		return 0;
+	}
+
+	T_RECORD_POS			recordPostion = m_oHashTableOfIndex[nDataSeqKey];
+	unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * recordPostion.nRecordPos;
+	DyncRecord				oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
+
+	if( true == recordPostion.Empty() )
+	{
+		return -3;
+	}
+
+	if( nDataOffsetIndex >= (m_nMaxBufferSize-nDataOffsetIndex) )
+	{
+		return -4;
+	}
+
+	if( oCurRecord.CloneFrom( objRecord ) >= 0 )
+	{
+		m_nCurrentDataSize += m_oTableMeta.m_nRecordWidth;
 	}
 
 	return 0;

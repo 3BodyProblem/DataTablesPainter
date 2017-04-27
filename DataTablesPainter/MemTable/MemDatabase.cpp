@@ -18,11 +18,11 @@ void MemDatabase::DeleteTables()
 
 bool MemDatabase::CreateTable( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen )
 {
-	int				nResult = -1;
-	CriticalLock	lock( m_oCSLock );
+	int						nResult = -1;
+	CriticalLock			lock( m_oCSLock );
 
 	///< 分配设置好数据表索引哈稀
-	if( (nResult=m_HashTableOfPostion.SetHashPair( nBindID, struct T_TABLE_POS_INF(m_nUsedTableNum) )) == 0 )
+	if( (nResult=m_HashTableOfPostion.NewKey( nBindID, struct T_TABLE_POS_INF(m_nUsedTableNum) )) > 0 )
 	{	///< 使用数据表元信息结构初始化刚分配的数据表对象
 		m_arrayQuotationTables[m_nUsedTableNum].Initialize( DynamicTable::TableMeta(nBindID,nRecordWidth,nKeyStrLen) );
 		++m_nUsedTableNum;													///< 引用计算加一
@@ -33,15 +33,15 @@ bool MemDatabase::CreateTable( unsigned int nBindID, unsigned int nRecordWidth, 
 
 I_Table* MemDatabase::QueryTable( unsigned int nBindID )
 {
-	CriticalLock			lock( m_oCSLock );
-	struct T_TABLE_POS_INF	InfoPosition = m_HashTableOfPostion[nBindID];	///< 取得哈稀索引信息
+	CriticalLock				lock( m_oCSLock );
+	struct T_TABLE_POS_INF		infoPosition = m_HashTableOfPostion[nBindID];	///< 取得哈稀索引信息
 
-	if( true == InfoPosition.Empty() )										///< 该数据表索引信息不存在
+	if( true == infoPosition.Empty() )											///< 该数据表索引信息不存在
 	{
 		return NULL;
 	}
 
-	return &m_arrayQuotationTables[InfoPosition.nTablePosition];			///< 返回对应的数据表
+	return &m_arrayQuotationTables[infoPosition.nTablePosition];				///< 返回对应的数据表
 }
 
 I_Table* MemDatabase::operator[]( unsigned int nTableIndex )

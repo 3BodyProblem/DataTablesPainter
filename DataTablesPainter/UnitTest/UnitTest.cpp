@@ -4,112 +4,159 @@
 #include <algorithm>
 
 
-void TestDemoStatic::SetUpTestCase()
+///< --------------------- 单元测试类定义 --------------------------------
+
+
+I_Table* TestCreateNameTable1000_ZeroMemo::s_pTablePtr = NULL;
+MemoryCollection::DynamicTable::TableMeta TestCreateNameTable1000_ZeroMemo::s_oTableMeta( 0, 0, 0 );
+TestCreateNameTable1000_ZeroMemo::T_Message1000_NameTable TestCreateNameTable1000_ZeroMemo::s_sMsg1000NameTable = { 0 };
+
+void TestCreateNameTable1000_ZeroMemo::SetUpTestCase()
 {
-/*	for( int n = 0; n < MAX_STATIC_NUM; n++ )
+	///< 静态域：初始化数据表指针
+	s_pTablePtr = NULL;
+	///< 静态域：初始化数据表元信息
+	s_oTableMeta = MemoryCollection::DynamicTable::TableMeta( 1000, sizeof(T_Message1000_NameTable), sizeof(s_sMsg1000NameTable.SecurityID) );
+	///< 静态域：码表清零
+	::memset( &s_sMsg1000NameTable, 0, sizeof(s_sMsg1000NameTable) );
+}
+
+void TestCreateNameTable1000_ZeroMemo::TearDownTestCase()
+{
+}
+
+void TestCreateNameTable1000_ZeroMemo::SetUp()
+{
+	for( int n = 0; n < 10; n++ ) {
+		ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( s_oTableMeta.m_nBindID, s_oTableMeta.m_nRecordWidth, s_oTableMeta.m_nKeyStrLen ) );
+	}
+}
+
+void TestCreateNameTable1000_ZeroMemo::TearDown()
+{
+	TestLocateTable();
+}
+
+void TestCreateNameTable1000_ZeroMemo::TestLocateTable()
+{
+	I_Table*	pTable = UnitTestEnv::GetDatabasePtr()->QueryTable( s_oTableMeta.m_nBindID );
+
+	ASSERT_NE( pTable, (I_Table*)NULL );			///< 返回数据表指针不能为空
+
+	if( NULL == s_pTablePtr )
 	{
-		char		pszCode[7] = { 0 };
-
-		m_lstTagName[n].Type = (n % 10) + 1;
-		::sprintf( pszCode, "%u", 600001 + n );
-		::memcpy( m_lstTagName[n].Code, pszCode, 6 );
-		::strncpy( m_lstTagName[n].Name, "abcdefg", 8 );
-	}*/
+		s_pTablePtr = pTable;						///< 第一次查询到数据表指针
+	}
+	else
+	{
+		ASSERT_EQ( s_pTablePtr, pTable );			///< 之后每次查询得到的指针都应该等价于第一次的查询指针
+	}
 }
 
-void TestDemoStatic::TearDownTestCase()
+void TestCreateNameTable1000_ZeroMemo::TestInsertRecord()
 {
-//	::memset( m_lstTagName, 0, sizeof(m_lstTagName) );
+	for( int n = 0; n < 10; n++ ) {
+		ASSERT_EQ( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+	}
 }
 
-void TestDemoStatic::SetUp()
+void TestCreateNameTable1000_ZeroMemo::TestSelectRecord()
 {
-//	ASSERT_EQ( 0, g_pEncoder->Attach2Buffer( g_pGlobalBuffer, GLOBAL_BUFFER_SIZE ) );
-//	ASSERT_EQ( 0, g_pDecoder->Attach2Buffer( g_pGlobalBuffer, GLOBAL_BUFFER_SIZE ) );
+	for( int n = 0; n < 100; n++ ) {
+		RecordBlock	record = s_pTablePtr->SelectRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) );
+		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
+		ASSERT_EQ( true, record.Compare( RecordBlock((char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable)) ) );
+	}
 }
 
-void TestDemoStatic::TearDown()
+void TestCreateNameTable1000_Normal::SetUpTestCase()
 {
+	TestCreateNameTable1000_ZeroMemo::SetUpTestCase();
+
+	///< 静态域：码表清零
+	::sprintf( s_sMsg1000NameTable.SecurityID, "SR123456-C-%u", 2800 );
+	::sprintf( s_sMsg1000NameTable.SecurityName, "测试名称 %d 号单元", 3 );
+	s_sMsg1000NameTable.SecurityType = 1024;
+	s_sMsg1000NameTable.Number1 = 1;
+	s_sMsg1000NameTable.Number2 = 2;
+	s_sMsg1000NameTable.Number3 = 3;
+}
+
+void TestCreateNameTable1000_Normal::TestInsertRecord()
+{
+	for( int n = 0; n < 10; n++ ) {
+		ASSERT_EQ( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+	}
+}
+
+void TestCreateNameTable1000_Normal::TestSelectRecord()
+{
+	for( int n = 0; n < 100; n++ ) {
+		RecordBlock	record = s_pTablePtr->SelectRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) );
+		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
+		ASSERT_EQ( true, record.Compare( RecordBlock((char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable)) ) );
+
+		if( (n+1) % 20 == 0 )	{
+			T_Message1000_NameTable*	pNameTable = (T_Message1000_NameTable*)record.GetPtr();
+			::printf( "[%u] Code=%s,Name=%s,Type=%u,Num1=%u,Num2=%u,Num3=%u\n"
+					, (n+1), pNameTable->SecurityID, pNameTable->SecurityName, pNameTable->SecurityType
+					, pNameTable->Number1, pNameTable->Number2, pNameTable->Number3 );
+		}
+	}
 }
 
 
 ///< ------------------------ 测试用例定义 ----------------------------------------------------
 
 
-TEST_F( TestDemoStatic, Single )
+TEST_F( TestCreateNameTable1000_ZeroMemo, InsertOption_ZeroMemoryOfNameTable )
 {
-/*	unsigned short			nMsgID = 0;
-	tagDemoStaticType		value = { 0 };
-	ASSERT_LT( 0, g_pEncoder->EncodeMessage( 10, (char*)&m_lstTagName[0], sizeof(tagDemoStaticType) ) );
-	g_pDecoder->DecodeMessage( nMsgID, (char*)&value, sizeof(value) );
-	ASSERT_EQ( 0, ::memcmp( &value, &m_lstTagName[0], sizeof(value) ) );*/
-}
-
-TEST_F( TestDemoStatic, Loop )
-{
-/*	unsigned short			nMsgID = 0;
-	tagDemoStaticType		value = { 0 };
-	ASSERT_LT( 0, g_pEncoder->EncodeMessage( 10, (char*)&m_lstTagName[0], sizeof(tagDemoStaticType) ) );
-	ASSERT_LT( 0, g_pEncoder->EncodeMessage( 10, (char*)&m_lstTagName[1], sizeof(tagDemoStaticType) ) );
-	ASSERT_LT( 0, g_pEncoder->EncodeMessage( 10, (char*)&m_lstTagName[2], sizeof(tagDemoStaticType) ) );
-	ASSERT_LT( 0, g_pEncoder->EncodeMessage( 10, (char*)&m_lstTagName[2], sizeof(tagDemoStaticType) ) );
-	ASSERT_LT( 0, g_pEncoder->EncodeMessage( 10, (char*)&m_lstTagName[1], sizeof(tagDemoStaticType) ) );
-	int	nBufSize = g_pEncoder->EncodeMessage( 10, (char*)&m_lstTagName[0], sizeof(tagDemoStaticType) );
-	ASSERT_LT( 0, nBufSize );
-
-	ASSERT_EQ( 0, g_pDecoder->Attach2Buffer( g_pGlobalBuffer, nBufSize ) );
-	ASSERT_NE( 0, g_pDecoder->DecodeMessage( nMsgID, (char*)&value, sizeof(value) ) );
-	ASSERT_EQ( 0, ::memcmp( &value, &m_lstTagName[0], sizeof(value) ) );
-	ASSERT_NE( 0, g_pDecoder->DecodeMessage( nMsgID, (char*)&value, sizeof(value) ) );
-	ASSERT_EQ( 0, ::memcmp( &value, &m_lstTagName[1], sizeof(value) ) );
-	ASSERT_NE( 0, g_pDecoder->DecodeMessage( nMsgID, (char*)&value, sizeof(value) ) );
-	ASSERT_EQ( 0, ::memcmp( &value, &m_lstTagName[2], sizeof(value) ) );
-	ASSERT_NE( 0, g_pDecoder->DecodeMessage( nMsgID, (char*)&value, sizeof(value) ) );
-	ASSERT_EQ( 0, ::memcmp( &value, &m_lstTagName[2], sizeof(value) ) );
-	ASSERT_NE( 0, g_pDecoder->DecodeMessage( nMsgID, (char*)&value, sizeof(value) ) );
-	ASSERT_EQ( 0, ::memcmp( &value, &m_lstTagName[1], sizeof(value) ) );
-	ASSERT_EQ( 0, g_pDecoder->DecodeMessage( nMsgID, (char*)&value, sizeof(value) ) );
-	ASSERT_EQ( 0, ::memcmp( &value, &m_lstTagName[0], sizeof(value) ) );*/
+	TestLocateTable();
+	TestInsertRecord();
+	TestLocateTable();
+	TestSelectRecord();
 }
 
 
-///< ------------------------- 单元测试初始化类定义 ----------------------------------------------
-
-
-void QLXEnDeCodeTestEnv::SetUp()
+TEST_F( TestCreateNameTable1000_Normal, InsertOptionOfNameTable )
 {
-	ASSERT_EQ( true, true );
-/*	IPbOperation* pListEncodeOperation[] = { &EnMarket, &EnStatic, &EnSnap, &EnTrade, &EnIndex, &EnVP };///< 需要注册的protobuf的encode策略对象
-	IPbOperation* pListDecodeOperation[] = { &DeMarket, &DeStatic, &DeSnap, &DeTrade, &DeIndex, &DeVP };///< 需要注册的protobuf的encode策略对象
-
-	g_pGlobalBuffer = new char[GLOBAL_BUFFER_SIZE];							///< 分配一个encode和decode共用的大缓存,用来依次存放多个Messages
-	ASSERT_NE( 0, (int)g_pGlobalBuffer );									///< 检测缓存是否分配成功
-	g_pEncoder = new Encode();
-	ASSERT_NE( 0, (int)g_pEncoder );
-	g_pDecoder = new Decode();
-	ASSERT_NE( 0, (int)g_pDecoder );
-	ASSERT_EQ( 0, g_pEncoder->Initialize( s_XmlTemplatePath.c_str(), pListEncodeOperation, sizeof(pListEncodeOperation)/sizeof(IPbOperation*) ) );
-	ASSERT_EQ( 0, g_pDecoder->Initialize( s_XmlTemplatePath.c_str(), pListDecodeOperation, sizeof(pListDecodeOperation)/sizeof(IPbOperation*) ) );*/
-}
-
-void QLXEnDeCodeTestEnv::TearDown()
-{
-/*	delete [] g_pGlobalBuffer;
-	g_pGlobalBuffer = NULL;
-
-	delete g_pEncoder;
-	delete g_pDecoder;
-	g_pEncoder = NULL;
-	g_pDecoder = NULL;*/
+	TestLocateTable();
+	TestInsertRecord();
+	TestLocateTable();
+	TestSelectRecord();
 }
 
 
-///< ------------------ 单元测试导出函数定义 -------------------------------
+///< ---------------------- 单元测试初始化类定义 -------------------------
 
 
-/**
- * @brief		初始化gtest工作环境
- */
+I_Database* UnitTestEnv::m_pIDatabase = NULL;
+
+
+UnitTestEnv::UnitTestEnv()
+{
+}
+
+I_Database* UnitTestEnv::GetDatabasePtr()
+{
+	return m_pIDatabase;
+}
+
+void UnitTestEnv::SetUp()
+{
+	m_pIDatabase = DBFactory::GetFactory().GrapDatabaseInterface();
+	ASSERT_NE( m_pIDatabase, (I_Database*)NULL );
+}
+
+void UnitTestEnv::TearDown()
+{
+	ASSERT_EQ( DBFactory::GetFactory().ReleaseAllDatabase(), true );
+}
+
+
+///< ---------------- 单元测试导出函数定义 -------------------------------
+
+
 void ExecuteTestCase()
 {
 	static	bool	s_bInit = false;
@@ -119,7 +166,7 @@ void ExecuteTestCase()
 		char*		pszArgv[32] = { "MemDatabase.dll", };
 
 		s_bInit = true;
-		testing::AddGlobalTestEnvironment( new QLXEnDeCodeTestEnv() );
+		testing::AddGlobalTestEnvironment( new UnitTestEnv() );
 		testing::InitGoogleTest( &nArgc, pszArgv );
 		RUN_ALL_TESTS();
 	}

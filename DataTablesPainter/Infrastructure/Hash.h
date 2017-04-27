@@ -38,17 +38,17 @@ public:
 	 * @return			返回映射值
 	 * @note			如果key不存在，则抛出runtime异常
 	 */
-	const T_VALUE_TYPE&	operator[]( T_KEY_TYPE nKey );
+	const T_VALUE_TYPE	operator[]( T_KEY_TYPE nKey );
 
 	/**
 	 * @brief			设置键值对
 	 * @param[in]		nKey		键值
 	 * @param[in\		oData		数值
-	 * @return			=0			设置成功
-						>1			已经存在，不需要新建
+	 * @return			==1			设置成功
+						==0			已经存在，不需要新建
 						<0			失败
 	 */
-	int					SetHashPair( T_KEY_TYPE nKey, T_VALUE_TYPE oData );
+	int					NewKey( T_KEY_TYPE nKey, T_VALUE_TYPE oData );
 
 	/**
 	 * @brief			清空所有数据
@@ -77,34 +77,39 @@ void CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::C
 	m_nUsedNumOfArrayData = 0;
 	m_nUsedNumOfCollisionBucket = 0;
 
-	::memset( m_ArrayOfData, 0, sizeof(m_ArrayOfData) );
+	for( unsigned int n = 0; n < MAX_DATATABLE_NUM; n++ )
+	{
+		m_ArrayOfData[n] = T_VALUE_TYPE();
+	}
+
 	std::for_each( m_BucketOfHash, m_BucketOfHash+MAX_BUCKET_SIZE, std::mem_fun_ref(&T_ListNode::Clear) );
 	std::for_each( m_CollisionBucket, m_CollisionBucket+MAX_DATATABLE_NUM, std::mem_fun_ref(&T_ListNode::Clear) );
 }
 
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
-int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::SetHashPair( T_KEY_TYPE nKey, T_VALUE_TYPE oData )
+int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::NewKey( T_KEY_TYPE nKey, T_VALUE_TYPE oData )
 {
 	T_KEY_TYPE				nKeyPos = nKey % MAX_BUCKET_SIZE;
 	struct T_ListNode*		pNode = m_BucketOfHash + nKeyPos;
 
-	if( (m_nUsedNumOfArrayData-1) >= MAX_DATATABLE_NUM )
+	if( m_nUsedNumOfArrayData >= (MAX_DATATABLE_NUM-1) )
 	{
-		throw std::runtime_error( "CollisionHash::SetHashPair() : data buffer is full." );
+		throw std::runtime_error( "CollisionHash::NewKey() : data buffer is full." );
 	}
 
 	if( true == pNode->IsNull() )
 	{
 		m_ArrayOfData[m_nUsedNumOfArrayData] = oData;
+		pNode->nHashKey = nKey;
 		pNode->nDataPos = m_nUsedNumOfArrayData++;
-		return 0;
+		return 1;
 	}
 
 	while( true )
 	{
 		if( nKey == pNode->nHashKey )
 		{
-			return 1;
+			return 0;
 		}
 
 		if( false == pNode->HasNext() )
@@ -112,10 +117,11 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Se
 			struct T_ListNode* pNewNodeOfCollision = m_CollisionBucket+m_nUsedNumOfCollisionBucket++;
 
 			m_ArrayOfData[m_nUsedNumOfArrayData] = oData;
+			pNewNodeOfCollision->nHashKey = nKey;
 			pNewNodeOfCollision->nDataPos = m_nUsedNumOfArrayData++;
 			pNode->pNextNode = pNewNodeOfCollision;
 
-			return 0;
+			return 1;
 		}
 		else
 		{
@@ -127,7 +133,7 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Se
 }
 
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
-const T_VALUE_TYPE& CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::operator[]( T_KEY_TYPE nKey )
+const T_VALUE_TYPE CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::operator[]( T_KEY_TYPE nKey )
 {
 	T_KEY_TYPE				nKeyPos = nKey % MAX_BUCKET_SIZE;
 	struct T_ListNode*		pNode = m_BucketOfHash + nKeyPos;
@@ -148,7 +154,7 @@ const T_VALUE_TYPE& CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DA
 		}
 	}
 
-	throw std::runtime_error( "CollisionHash::operator[]() : hash key isn\'t exist!" );
+	return T_VALUE_TYPE();
 }
 
 #endif

@@ -13,7 +13,7 @@ CodeKey::CodeKey( char* pszCode )
 {
 }
 
-int CodeKey::GetKeyID() const
+__int64 CodeKey::GetKeyID() const
 {
 	if( m_nKeyID >= 0 )
 	{
@@ -25,14 +25,16 @@ int CodeKey::GetKeyID() const
 		return -1;
 	}
 
-	return GenHashKey( m_pszCode, ::strlen( m_pszCode ) );
+	m_nKeyID = GenHashKey( m_pszCode, ::strlen( m_pszCode ) );
+
+	return m_nKeyID;
 }
 
-unsigned __int64 CodeKey::GenHashKey( const char* pszCode, unsigned int nCodeLen )
+__int64 CodeKey::GenHashKey( const char* pszCode, unsigned int nCodeLen )
 {
-	char							pszMainKey[32] = { 0 };
-	unsigned __int64				nTmpVal = 0;
-	unsigned __int64				nCodeKey = ::pow( 10., 18 );	///< 分配一个hash的基值
+	char				pszMainKey[32] = { 0 };
+	__int64				nTmpVal = 0;
+	__int64				nCodeKey = ::pow( 10., 18 );	///< 分配一个hash的基值
 
 	for( unsigned int i = 0; i < nCodeLen; i++ )
 	{
@@ -81,55 +83,17 @@ unsigned __int64 CodeKey::GenHashKey( const char* pszCode, unsigned int nCodeLen
 
 
 DyncRecord::DyncRecord( char* pRecord, unsigned int nRecordLen )
-	: m_pRecordData( pRecord ), m_nRecordLen( nRecordLen ), m_oCodeKey( pRecord )
+	: RecordBlock( pRecord, nRecordLen ), m_oCodeKey( pRecord )
 {
 }
 
 DyncRecord::DyncRecord( const DyncRecord& obj )
  : m_oCodeKey( obj.m_pRecordData )
 {
-	m_pRecordData = obj.m_pRecordData;
-	m_nRecordLen = obj.m_nRecordLen;
+	*((RecordBlock*)this) = *((RecordBlock*)&obj);
 }
 
-unsigned int DyncRecord::Length() const
-{
-	return m_nRecordLen;
-}
-
-const char* DyncRecord::GetPtr() const
-{
-	return m_pRecordData;
-}
-
-bool DyncRecord::IsNone() const
-{
-	if( NULL == m_pRecordData )
-	{
-		return true;
-	}
-
-	return false;
-}
-
-int DyncRecord::CloneFrom( const I_Record& refRecord )
-{
-	if( true == refRecord.IsNone() )
-	{
-		return 0;
-	}
-
-	if( 0 != ::memcmp( m_pRecordData, refRecord.GetPtr(), refRecord.Length() ) )
-	{
-		memcpy( m_pRecordData, refRecord.GetPtr(), refRecord.Length() );
-
-		return 1;
-	}
-
-	return 0;
-}
-
-int DyncRecord::GetSerial() const
+__int64 DyncRecord::GetMainKey() const
 {
 	return m_oCodeKey.GetKeyID();
 }

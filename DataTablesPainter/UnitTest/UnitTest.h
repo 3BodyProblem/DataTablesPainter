@@ -5,30 +5,57 @@
 
 
 #include "gtest/gtest.h"
+#include "../Interface.h"
+#include "../MemTable/MemTable.h"
 
 
-///< --------------------- DEMO部分的测试类： 单元测试类定义 --------------------------------
+///< --------------------- 单元测试类定义 --------------------------------
 
 
 /**
- * @class		TestDemoStatic
- * @brief		简单测试样例静态数据类的加解码
-				&
-				测试单个或多个加解码
+ * @class							TestCreateNameTable1000_ZeroMemo
+ * @brief							测试创建一个数据表	(ID=1000)
  */
-class TestDemoStatic : public testing::Test
+class TestCreateNameTable1000_ZeroMemo : public testing::Test
 {
-#define		MAX_STATIC_NUM		10
-protected:
-	static	void	SetUpTestCase();
-	static	void	TearDownTestCase();
+public:
+	typedef struct
+	{
+		char				SecurityID[32];				///< 商品代码
+		char				SecurityName[64];			///< 商品名称
+		unsigned int		SecurityType;				///< 商品类型
+		unsigned int		Number1;
+		unsigned int		Number2;
+		unsigned int		Number3;
+	} T_Message1000_NameTable;
 
-	void	SetUp();
-	void	TearDown();
+protected:
+	virtual void										TestLocateTable();
+	virtual void										TestInsertRecord();
+	virtual void										TestSelectRecord();
 
 protected:
-//	static	tagDemoStaticType	m_lstTagName[MAX_STATIC_NUM];
+	static	void										SetUpTestCase();
+	static	void										TearDownTestCase();
+	void												SetUp();
+	void												TearDown();
+
+protected:
+	static I_Table*										s_pTablePtr;			///< 数据表指针
+	static MemoryCollection::DynamicTable::TableMeta	s_oTableMeta;			///< 数据表元信息
+	static T_Message1000_NameTable						s_sMsg1000NameTable;	///< 码表结构
 };
+
+
+class TestCreateNameTable1000_Normal : public TestCreateNameTable1000_ZeroMemo
+{
+protected:
+	static	void										SetUpTestCase();
+	virtual void										TestInsertRecord();
+	virtual void										TestSelectRecord();
+};
+
+
 
 
 ///< ------------ 单元测试初始化类定义 ------------------------------------
@@ -38,11 +65,22 @@ protected:
  * @class		QLXEnDeCodeTestEnv
  * @brief		全局事件(初始化引擎)
  */
-class QLXEnDeCodeTestEnv : public testing::Environment
+class UnitTestEnv : public testing::Environment
 {
 public:
-	void	SetUp();
-	void	TearDown();
+	UnitTestEnv();
+
+public:
+	/**
+	 * @brief				取单数据库对象指针,从而进行指定测试
+	 */
+	static	I_Database*		GetDatabasePtr();
+
+	void					SetUp();
+	void					TearDown();
+
+private:
+	static I_Database*		m_pIDatabase;		///< 进行压力操作的数据对象地址
 };
 
 

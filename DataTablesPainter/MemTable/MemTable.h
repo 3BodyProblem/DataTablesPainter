@@ -14,7 +14,23 @@ namespace MemoryCollection
 {
 
 
-typedef CollisionHash<unsigned int,unsigned int>	TRecordHash;	///< 哈希表(key,index of array)
+/**
+ * @class			T_RECORD_POS
+ * @brief			数据记录位置信息结构
+ * @author			barry
+ * @date			2017/4/2
+ */
+struct T_RECORD_POS
+{
+	T_RECORD_POS() { nRecordPos = -1; }
+	T_RECORD_POS( unsigned int nPos ) { nRecordPos = nPos; }
+	void			Clear()	{	nRecordPos = -1;	}
+	bool			Empty() const	{	if( nRecordPos < 0 )	return true;	else	return false;	}
+	int				nRecordPos;			///< 使用数据表的索引位置
+};
+
+
+typedef CollisionHash<unsigned __int64,T_RECORD_POS>	TRecordHash;	///< 哈希表(key,index of array)
 
 
 /**
@@ -59,18 +75,20 @@ public:
 public:
 	/**
 	 * @brief								追加新数据
-	 * @param[in]							refRecord				追加的数据
+	 * @param[in]							pRecord					记录体地址
+	 * @param[in]							nRecordLen				记录体长度
 	 * @return								==0						增加成功
 											!=0						失败
 	 */
-	int										InsertRecord( const I_Record& refRecord ); 
+	int										InsertRecord( char* pRecord, unsigned int nRecordLen ); 
 
 	/**
 	 * @brief								索引出记录对象
-	 * @param[in]							Index					记录索引
+	 * @param[in]							pKeyStr					主键地址
+	 * @param[in]							nKeyLen					主键长度
 	 * @return								返回记录对象
 	 */
-	I_Record								SelectRecord( int nRecordIndex );
+	RecordBlock								SelectRecord( char* pKeyStr, unsigned int nKeyLen );
 
 private:
 	/**
