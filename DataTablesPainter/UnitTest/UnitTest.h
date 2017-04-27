@@ -14,7 +14,8 @@
 
 /**
  * @class							TestCreateNameTable1000_ZeroMemo
- * @brief							测试创建一个数据表	(ID=1000)
+ * @brief							测试创建数据表和空记录(Code为空，所有属性都为空)	(ID=1000)
+ * @author							barry
  */
 class TestCreateNameTable1000_ZeroMemo : public testing::Test
 {
@@ -47,6 +48,11 @@ protected:
 };
 
 
+/**
+ * @class							TestCreateNameTable1000_Normal
+ * @brief							测试创建数据表和一条有内容的记录	(ID=1000)
+ * @author							barry
+ */
 class TestCreateNameTable1000_Normal : public TestCreateNameTable1000_ZeroMemo
 {
 protected:
@@ -62,8 +68,9 @@ protected:
 
 
 /**
- * @class		QLXEnDeCodeTestEnv
- * @brief		全局事件(初始化引擎)
+ * @class					QLXEnDeCodeTestEnv
+ * @brief					全局事件(初始化引擎)
+ * @author					barry
  */
 class UnitTestEnv : public testing::Environment
 {
@@ -85,7 +92,8 @@ private:
 
 
 /**
- * @brief		运行所有的测试例程
+ * @brief					运行所有的测试例程
+ * @author					barry
  */
 void ExecuteTestCase();
 
