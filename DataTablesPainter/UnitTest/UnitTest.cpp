@@ -2,6 +2,8 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <stdlib.h>
+#include <time.h>
 #include "../DataTablesPainter.h"
 
 
@@ -208,14 +210,69 @@ char* SnapTable4ValueTest::MessagePointer()
 	return (char*)&(m_vctMessage[m_nCurDataPos]);
 }
 
+VariableWidthTable4MsgIDTest::VariableWidthTable4MsgIDTest()
+ : I_Message( 0, sizeof(T_MessageX_Table) )
+{
+	if( m_vctMessage.capacity() == 0 )
+	{
+		m_vctMessage.reserve( 132 );
+
+		for( int n = 0; n < 128; n++ )
+		{
+			char			pszCode[64] = { 0 };
+
+			::sprintf( pszCode, "m2017-C-%u", n*100 );
+			m_vctMessage.push_back( T_MessageX_Table( pszCode, n*218 ) );
+		}
+	}
+}
+
+unsigned int VariableWidthTable4MsgIDTest::MessageID()
+{
+	unsigned int	nPos = m_nCurDataPos;
+
+	if( m_nCurDataPos >= m_vctMessage.size() )
+	{
+		nPos = 0;
+	}
+
+	T_MessageX_Table&	refData = m_vctMessage[nPos];
+	unsigned int		nMsgID = ::time(NULL) % (refData.MsgID+1);
+
+	return nMsgID;
+}
+
+bool VariableWidthTable4MsgIDTest::MoveNext()
+{
+	if( 0 == m_vctMessage.size() )	{	return false;	}
+	++m_nCurDataPos;
+
+	if( m_nCurDataPos >= m_vctMessage.size() )	{
+		m_nCurDataPos = 0;
+		return false;
+	}
+
+	return true;
+}
+
+char* VariableWidthTable4MsgIDTest::MessagePointer()
+{
+	return (char*)&(m_vctMessage[m_nCurDataPos]);
+}
+
+
 
 TestAnyMessage_ID_X::TestAnyMessage_ID_X()
 {
 	if( m_vctIMessage.size() == 0 )
 	{
-		static	NameTable4CodeTest		s_objNameTable4CodeTest;
+		static	NameTable4CodeTest					s_objNameTable4CodeTest;
+		static	SnapTable4ValueTest					s_objSnapTable4ValueTest;
+		static	VariableWidthTable4MsgIDTest		s_objVariableWidthMsg4MsgIDTest;
 
+		m_vctIMessage.push_back( &s_objVariableWidthMsg4MsgIDTest );
 		m_vctIMessage.push_back( &s_objNameTable4CodeTest );
+		m_vctIMessage.push_back( &s_objSnapTable4ValueTest );
 	}
 }
 
@@ -235,7 +292,10 @@ void TestAnyMessage_ID_X::CreateAllTable()
 	{
 		I_Message*			pMessage = m_vctIMessage[n];
 
-		ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( pMessage->MessageID(), pMessage->MessageLength(), 32 ) );
+		do
+		{
+			ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( pMessage->MessageID(), pMessage->MessageLength(), 32 ) );
+		} while( true == pMessage->MoveNext() );
 	}
 }
 
@@ -274,18 +334,21 @@ void TestAnyMessage_ID_X::Update1Table( I_Message* pMessage, bool IsExist )
 	I_Table*			pTable = NULL;
 	TestLocateTable( pMessage->MessageID(), &pTable );
 
-	if( true == IsExist )
+	do
 	{
-		ASSERT_EQ( 1, pTable->UpdateRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
-	}
-	else
-	{
-		ASSERT_EQ( 0, pTable->UpdateRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
-	}
+		if( true == IsExist )
+		{
+			ASSERT_EQ( 1, pTable->UpdateRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
+		}
+		else
+		{
+			ASSERT_EQ( 0, pTable->UpdateRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
+		}
 
-	RecordBlock	record = pTable->SelectRecord( pMessage->MessagePointer(), pMessage->MessageLength() );
-	ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
-	ASSERT_EQ( true, record.Compare( RecordBlock(pMessage->MessagePointer(), pMessage->MessageLength()) ) );
+		RecordBlock	record = pTable->SelectRecord( pMessage->MessagePointer(), pMessage->MessageLength() );
+		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
+		ASSERT_EQ( true, record.Compare( RecordBlock(pMessage->MessagePointer(), pMessage->MessageLength()) ) );
+	} while( true == pMessage->MoveNext() );
 }
 
 void TestAnyMessage_ID_X::Query1Table( I_Message* pMessage, bool IsExist )

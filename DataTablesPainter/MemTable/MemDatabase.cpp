@@ -24,6 +24,11 @@ bool MemDatabase::CreateTable( unsigned int nBindID, unsigned int nRecordWidth, 
 	///< 分配设置好数据表索引哈稀
 	if( (nResult=m_HashTableOfPostion.NewKey( nBindID, struct T_TABLE_POS_INF(m_nUsedTableNum) )) > 0 )
 	{	///< 使用数据表元信息结构初始化刚分配的数据表对象
+		if( m_nUsedTableNum >= (MAX_TABBLE_NO-1) )
+		{
+			return false;
+		}
+
 		m_arrayQuotationTables[m_nUsedTableNum].Initialize( DynamicTable::TableMeta(nBindID,nRecordWidth,nKeyStrLen) );
 		++m_nUsedTableNum;													///< 引用计算加一
 	}

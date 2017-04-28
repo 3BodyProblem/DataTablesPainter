@@ -76,10 +76,9 @@ public:
 public:
 	virtual char*										MessagePointer() = 0;
 	virtual bool										MoveNext() = 0;
-public:
-	unsigned int										MessageID();
-	unsigned int										MessageLength();
-	void												Reset();
+	virtual unsigned int								MessageID();
+	virtual unsigned int								MessageLength();
+	virtual void										Reset();
 protected:
 	unsigned int										m_nCurDataPos;
 	unsigned int										m_nMessageID;
@@ -158,6 +157,39 @@ public:
 
 protected:
 	std::vector<T_Message2003_SnapTable>				m_vctMessage;
+};
+
+
+/**
+ * @class							VariableWidthTable4MsgIDTest
+ * @brief							不同数据表MessageID测试数据接口,测试各种变化的MessageID数值
+ * @author							barry
+ */
+class VariableWidthTable4MsgIDTest : public I_Message
+{
+public:
+	struct T_MessageX_Table
+	{
+		T_MessageX_Table( char* pszCode, unsigned int nMsgID )
+		{
+			::memset( SecurityID, 0, sizeof(SecurityID) );
+			::strncpy( SecurityID, pszCode, ::strlen( pszCode ) );
+			MsgID = nMsgID;
+		}
+
+		char				SecurityID[64];				///< 商品代码
+		unsigned int		MsgID;
+	};
+
+	VariableWidthTable4MsgIDTest();
+
+public:
+	unsigned int										MessageID();
+	bool												MoveNext();
+	char*												MessagePointer();
+
+protected:
+	std::vector<T_MessageX_Table>						m_vctMessage;
 };
 
 
