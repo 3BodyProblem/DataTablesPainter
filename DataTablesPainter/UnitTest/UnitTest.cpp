@@ -267,7 +267,6 @@ void TestAnyMessage_ID_X::Insert1Table( I_Message* pMessage, bool IsExist )
 		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
 		ASSERT_EQ( true, record.Compare( RecordBlock(pMessage->MessagePointer(), pMessage->MessageLength()) ) );
 	} while( true == pMessage->MoveNext() );
-
 }
 
 void TestAnyMessage_ID_X::Update1Table( I_Message* pMessage, bool IsExist )
