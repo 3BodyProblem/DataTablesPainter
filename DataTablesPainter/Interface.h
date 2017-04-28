@@ -97,7 +97,7 @@ public:
 class I_Database
 {
 public:
-	virtual ~I_Database();
+	virtual ~I_Database(){};
 
 	/**
 	 * @brief						根据消息id和消息长度，进行合适的数据表配置（在预备表中配置对应的占用关系）
@@ -136,31 +136,22 @@ public:
 
 
 /**
- * @class							DBFactory
- * @brief							内存数据分配管理工厂类
+ * @class							IDBFactory
+ * @brief							内存数据分配管理工厂类接口
  */
-class DBFactory
+class IDBFactory
 {
-private:
-	DBFactory();
-
-public:
-	/**
-	 * @brief						取得单键
-	 */
-	static	DBFactory&				GetFactory();
-
 public:
 	/**
 	 * @brief						创建并返回数据库对象指针
 	 * @return						返回数据库指针的地址
 	 */
-	I_Database*						GrapDatabaseInterface();
+	virtual I_Database*				GrapDatabaseInterface() = 0;
 
 	/**
 	 * @brief						释放分配的所有数据库对象
 	 */
-	bool							ReleaseAllDatabase();
+	virtual bool					ReleaseAllDatabase() = 0;
 
 };
 
