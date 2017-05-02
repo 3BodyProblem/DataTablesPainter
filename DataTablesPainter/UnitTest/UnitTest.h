@@ -200,15 +200,13 @@ protected:
  */
 class TestAnyMessage_ID_X : public testing::Test
 {
-public:
-	TestAnyMessage_ID_X();
-
 protected:
-	void												TestLocateTable( unsigned int nBindID, I_Table** pTable );
-	void												CreateAllTable();
-	void												Insert1Table( I_Message* pMessage, bool IsExist );
-	void												Update1Table( I_Message* pMessage, bool IsExist );
-	void												Query1Table( I_Message* pMessage, bool IsExist );
+	void												TestLocateTable( unsigned int nBindID, I_Table** pTable, bool bIsExist );
+	void												TestDeleteAllTables();
+	void												TestCreateAllTable();
+	void												TestInsert1Table( I_Message* pMessage, bool IsExist, int nAffectNum );
+	void												TestUpdate1Table( I_Message* pMessage, bool IsExist, int nAffectNum );
+	void												TestQuery1Table( I_Message* pMessage, bool IsExist );
 
 protected:
 	static	void										SetUpTestCase();

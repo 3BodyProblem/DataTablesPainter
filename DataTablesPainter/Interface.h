@@ -5,6 +5,7 @@
 /**
  * @classs							RecordBlock
  * @brief							记录数据块类
+ * @author							barry
  */
 class RecordBlock
 {
@@ -37,6 +38,7 @@ public:
 	 */
 	int								CloneFrom( const RecordBlock& refRecord );
 
+public:
 	/**
 	 * @brief						取得数据地址
 	 */
@@ -56,6 +58,7 @@ protected:
 /**
  * @class							I_Table
  * @brief							数据表操作接口
+ * @author							barry
  */
 class I_Table
 {
@@ -93,6 +96,7 @@ public:
 /**
  * @class							I_Database
  * @brief							数据库操作接口
+ * @author							barry
  */
 class I_Database
 {
@@ -138,6 +142,7 @@ public:
 /**
  * @class							IDBFactory
  * @brief							内存数据分配管理工厂类接口
+ * @author							barry
  */
 class IDBFactory
 {

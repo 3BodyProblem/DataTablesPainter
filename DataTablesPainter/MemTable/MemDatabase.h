@@ -44,6 +44,7 @@ class MemDatabase : public I_Database
 {
 public:
 	MemDatabase();
+	~MemDatabase();
 
 public:///< Method Of Interface
 	/**

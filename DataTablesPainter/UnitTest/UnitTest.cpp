@@ -94,14 +94,25 @@ void TestCreateNameTable1000_Normal::TestInsertRecord()
 
 void TestCreateNameTable1000_Normal::TestUpdateRecord()
 {
-	s_sMsg1000NameTable.Number1 = 1000;
-	s_sMsg1000NameTable.Number2 = 2000;
-	s_sMsg1000NameTable.Number3 = 3000;
+	static unsigned long		nnn = 0;
+
+	s_sMsg1000NameTable.Number1 = 100 * nnn;
+	s_sMsg1000NameTable.Number2 = 200 * nnn;
+	s_sMsg1000NameTable.Number3 = 300 * nnn;
 	s_sMsg1000NameTable.SecurityType = 1024*3;
 	::sprintf( s_sMsg1000NameTable.SecurityName, "测试名称 %d 号单元", 2 );
+	nnn++;
 
-	for( int n = 0; n < 10; n++ ) {
-		ASSERT_LT( 0, s_pTablePtr->UpdateRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+	for( int n = 0; n < 10; n++ )
+	{
+		if( 0 == n )
+		{
+			ASSERT_LT( 0, s_pTablePtr->UpdateRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+		}
+		else
+		{
+			ASSERT_EQ( 0, s_pTablePtr->UpdateRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+		}
 	}
 }
 
@@ -237,9 +248,8 @@ unsigned int VariableWidthTable4MsgIDTest::MessageID()
 	}
 
 	T_MessageX_Table&	refData = m_vctMessage[nPos];
-	unsigned int		nMsgID = ::time(NULL) % (refData.MsgID+1);
 
-	return nMsgID;
+	return refData.MsgID;
 }
 
 bool VariableWidthTable4MsgIDTest::MoveNext()
@@ -261,21 +271,6 @@ char* VariableWidthTable4MsgIDTest::MessagePointer()
 }
 
 
-
-TestAnyMessage_ID_X::TestAnyMessage_ID_X()
-{
-	if( m_vctIMessage.size() == 0 )
-	{
-		static	NameTable4CodeTest					s_objNameTable4CodeTest;
-		static	SnapTable4ValueTest					s_objSnapTable4ValueTest;
-		static	VariableWidthTable4MsgIDTest		s_objVariableWidthMsg4MsgIDTest;
-
-		m_vctIMessage.push_back( &s_objVariableWidthMsg4MsgIDTest );
-		m_vctIMessage.push_back( &s_objNameTable4CodeTest );
-		m_vctIMessage.push_back( &s_objSnapTable4ValueTest );
-	}
-}
-
 void TestAnyMessage_ID_X::SetUpTestCase()
 {
 }
@@ -284,7 +279,7 @@ void TestAnyMessage_ID_X::TearDownTestCase()
 {
 }
 
-void TestAnyMessage_ID_X::CreateAllTable()
+void TestAnyMessage_ID_X::TestCreateAllTable()
 {
 	unsigned int		nCount = m_vctIMessage.size();
 
@@ -299,17 +294,23 @@ void TestAnyMessage_ID_X::CreateAllTable()
 	}
 }
 
-void TestAnyMessage_ID_X::TestLocateTable( unsigned int nBindID, I_Table** pTable )
+void TestAnyMessage_ID_X::TestLocateTable( unsigned int nBindID, I_Table** pTable, bool bIsExist )
 {
 	*pTable = UnitTestEnv::GetDatabasePtr()->QueryTable( nBindID );
 
-	ASSERT_NE( *pTable, (I_Table*)NULL );			///< 返回数据表指针不能为空
+	if( true == bIsExist )
+	{
+		ASSERT_NE( *pTable, (I_Table*)NULL );			///< 返回数据表指针不能为空
+	}
+	else
+	{
+		ASSERT_EQ( *pTable, (I_Table*)NULL );			///< 返回数据表指针不能为空
+	}
 }
 
-void TestAnyMessage_ID_X::Insert1Table( I_Message* pMessage, bool IsExist )
+void TestAnyMessage_ID_X::TestInsert1Table( I_Message* pMessage, bool IsExist, int nAffectNum )
 {
 	I_Table*			pTable = NULL;
-	TestLocateTable( pMessage->MessageID(), &pTable );
 
 	if( false == IsExist )
 	{
@@ -317,11 +318,12 @@ void TestAnyMessage_ID_X::Insert1Table( I_Message* pMessage, bool IsExist )
 		return;
 	}
 
+	TestLocateTable( pMessage->MessageID(), &pTable, true );
 	ASSERT_NE( pTable, (I_Table*)NULL );
 
 	do
 	{
-		ASSERT_LT( 0, pTable->InsertRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
+		ASSERT_EQ( nAffectNum, pTable->InsertRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
 
 		RecordBlock	record = pTable->SelectRecord( pMessage->MessagePointer(), pMessage->MessageLength() );
 		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
@@ -329,21 +331,21 @@ void TestAnyMessage_ID_X::Insert1Table( I_Message* pMessage, bool IsExist )
 	} while( true == pMessage->MoveNext() );
 }
 
-void TestAnyMessage_ID_X::Update1Table( I_Message* pMessage, bool IsExist )
+void TestAnyMessage_ID_X::TestUpdate1Table( I_Message* pMessage, bool IsExist, int nAffectNum )
 {
 	I_Table*			pTable = NULL;
-	TestLocateTable( pMessage->MessageID(), &pTable );
+
+	TestLocateTable( pMessage->MessageID(), &pTable, IsExist );
+
+	if( false == IsExist )
+	{
+		ASSERT_EQ( pTable, (I_Table*)NULL );
+		return;
+	}
 
 	do
 	{
-		if( true == IsExist )
-		{
-			ASSERT_EQ( 1, pTable->UpdateRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
-		}
-		else
-		{
-			ASSERT_EQ( 0, pTable->UpdateRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
-		}
+		ASSERT_EQ( nAffectNum, pTable->UpdateRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
 
 		RecordBlock	record = pTable->SelectRecord( pMessage->MessagePointer(), pMessage->MessageLength() );
 		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
@@ -351,10 +353,10 @@ void TestAnyMessage_ID_X::Update1Table( I_Message* pMessage, bool IsExist )
 	} while( true == pMessage->MoveNext() );
 }
 
-void TestAnyMessage_ID_X::Query1Table( I_Message* pMessage, bool IsExist )
+void TestAnyMessage_ID_X::TestQuery1Table( I_Message* pMessage, bool IsExist )
 {
 	I_Table*			pTable = NULL;
-	TestLocateTable( pMessage->MessageID(), &pTable );
+	TestLocateTable( pMessage->MessageID(), &pTable, IsExist );
 
 	RecordBlock	record = pTable->SelectRecord( pMessage->MessagePointer(), pMessage->MessageLength() );
 
@@ -365,31 +367,32 @@ void TestAnyMessage_ID_X::Query1Table( I_Message* pMessage, bool IsExist )
 	}
 	else
 	{
-		ASSERT_NE( false, record.IsNone() );				///< 返回数据表指针不能为空
+		ASSERT_NE( false, record.IsNone() );			///< 返回数据表指针不能为空
 		ASSERT_EQ( false, record.Compare( RecordBlock(pMessage->MessagePointer(), pMessage->MessageLength()) ) );
 	}
 }
 
+void TestAnyMessage_ID_X::TestDeleteAllTables()
+{
+	UnitTestEnv::GetDatabasePtr()->DeleteTables();
+}
+
 void TestAnyMessage_ID_X::SetUp()
 {
-	CreateAllTable();
-
-	unsigned int		nCount = m_vctIMessage.size();
-
-	for( unsigned int n = 0; n < nCount; n++ )
+	if( m_vctIMessage.size() == 0 )						///< 注册所有用到的消息类型
 	{
-		Insert1Table( m_vctIMessage[n], true );
-	}
+		static	NameTable4CodeTest					s_objNameTable4CodeTest;
+		static	SnapTable4ValueTest					s_objSnapTable4ValueTest;
+		static	VariableWidthTable4MsgIDTest		s_objVariableWidthMsg4MsgIDTest;
 
-	for( unsigned int m = 0; m < nCount; m++ )
-	{
-		Update1Table( m_vctIMessage[m], true );
+		m_vctIMessage.push_back( &s_objVariableWidthMsg4MsgIDTest );
+		m_vctIMessage.push_back( &s_objNameTable4CodeTest );
+		m_vctIMessage.push_back( &s_objSnapTable4ValueTest );
 	}
 }
 
 void TestAnyMessage_ID_X::TearDown()
 {
-//	TestLocateTable();
 }
 
 
@@ -408,21 +411,10 @@ TEST_F( TestCreateNameTable1000_ZeroMemo, InsertOption_ZeroMemoryOfNameTable )
 	TestLocateTable();TestSelectRecord();
 }
 
-TEST_F( TestCreateNameTable1000_ZeroMemo, InsertOption_ZeroMemoryOfNameTable_Repeat )
-{
-	TestLocateTable();TestInsertRecord();
-	TestLocateTable();TestSelectRecord();
-}
-
 TEST_F( TestCreateNameTable1000_Normal, InsertOptionOfNormalNameTable )
 {
 	TestLocateTable();TestInsertRecord();
 	TestLocateTable();TestSelectRecord();
-}
-
-TEST_F( TestCreateNameTable1000_Normal, InsertOptionOfNormalNameTable_Repeat )
-{
-	TestInsertRecord();TestSelectRecord();
 }
 
 TEST_F( TestCreateNameTable1000_Normal, UpdateOptionOfNormalNameTable )
@@ -430,13 +422,62 @@ TEST_F( TestCreateNameTable1000_Normal, UpdateOptionOfNormalNameTable )
 	TestUpdateRecord();TestSelectRecord();
 }
 
-TEST_F( TestCreateNameTable1000_Normal, UpdateOptionOfNormalNameTable_Repeat )
+TEST_F( TestAnyMessage_ID_X, CreateDeleteTest )
 {
-	TestUpdateRecord();TestSelectRecord();
+	I_Table*			pTable = NULL;
+	unsigned int		nCount = m_vctIMessage.size();
+
+	///< 创建所有数据表
+	TestCreateAllTable();
+	///< 清空所有数据库
+	TestDeleteAllTables();
+	for( int a = 0; a < 10; a++ ) {
+		///< 再次，创建所有数据表
+		TestCreateAllTable();
+		///< 再次，创建所有数据表
+		TestCreateAllTable();
+		///< 再次，创建所有数据表
+		TestCreateAllTable();
+		///< 再次,清空数据库
+		TestDeleteAllTables();
+		///< 再次,清空数据库
+		TestDeleteAllTables();
+		///< 再次,清空数据库
+		TestDeleteAllTables();
+		///< 再次,清空数据库
+		TestDeleteAllTables();
+		///< 再次,清空数据库
+		TestDeleteAllTables();
+	}
+	///< 随意定义一个不存在的数据表
+	for( unsigned int ii = 0; ii < nCount; ii++ )	{	TestLocateTable( m_vctIMessage[ii]->MessageID(), &pTable, false );	}
 }
 
-TEST_F( TestAnyMessage_ID_X, AllWorkFlowTest )
+TEST_F( TestAnyMessage_ID_X, InsertUpdateTest )
 {
+	I_Table*			pTable = NULL;
+	unsigned int		nCount = m_vctIMessage.size();
+
+	///< 创建所有数据表
+	TestCreateAllTable();
+	///< 再次创建所有数据表
+	TestCreateAllTable();
+	///< 重复创建所有数据表
+	TestCreateAllTable();
+	///< 重复创建所有数据表
+	TestCreateAllTable();
+	///< 重复创建所有数据表
+	TestCreateAllTable();
+	///< 随意定义一个存在的数据表
+	for( unsigned int j = 0; j < nCount; j++ )	{	TestLocateTable( m_vctIMessage[j]->MessageID(), &pTable, true );	}
+	///< 各数据表记录插入循环
+	for( unsigned int n = 0; n < nCount; n++ )	{
+		TestInsert1Table( m_vctIMessage[n], true, 1 );
+	}
+	///< 各数据表记录更新循环
+	for( unsigned int m = 0; m < nCount; m++ )	{
+		TestUpdate1Table( m_vctIMessage[m], true, 0 );
+	}
 }
 
 

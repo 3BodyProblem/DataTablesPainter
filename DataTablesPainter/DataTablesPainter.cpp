@@ -25,18 +25,31 @@ IDBFactory& DBFactory::GetFactory()
 
 I_Database* DBFactory::GrapDatabaseInterface()
 {
-	CriticalLock	lock( s_oFactoryLock );
-	I_Database*		pIDatabase = new MemoryCollection::MemDatabase();
-
-	if( NULL == pIDatabase )
+	try
 	{
+		CriticalLock	lock( s_oFactoryLock );
+		I_Database*		pIDatabase = new MemoryCollection::MemDatabase();
+
+		if( NULL == pIDatabase )
+		{
+			return NULL;
+		}
+		else
+		{
+			s_vctIDatabase.push_back( pIDatabase );
+
+			return pIDatabase;
+		}
+	}
+	catch( std::exception& err )
+	{
+		::printf( "DBFactory::GrapDatabaseInterface() : exception : %s\n", err.what() );
 		return NULL;
 	}
-	else
+	catch( ... )
 	{
-		s_vctIDatabase.push_back( pIDatabase );
-
-		return pIDatabase;
+		::printf( "DBFactory::GrapDatabaseInterface() : unknow exception\n" );
+		return NULL;
 	}
 }
 
