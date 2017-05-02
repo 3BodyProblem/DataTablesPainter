@@ -404,24 +404,30 @@ void TestAnyMessage_ID_X::TearDown()
 ///< ------------------------ 测试用例定义 ----------------------------------------------------
 ///< ------------------------ 测试用例定义 ----------------------------------------------------
 
-
-TEST_F( TestCreateNameTable1000_ZeroMemo, InsertOption_ZeroMemoryOfNameTable )
+///< 空结构测试
+TEST_F( TestCreateNameTable1000_ZeroMemo, InsertTest_ZeroMemoryOfNameTable )
 {
 	TestLocateTable();TestInsertRecord();
 	TestLocateTable();TestSelectRecord();
 }
 
-TEST_F( TestCreateNameTable1000_Normal, InsertOptionOfNormalNameTable )
+///< 带中文字字符串结构测试
+TEST_F( TestCreateNameTable1000_Normal, InsertUpdateTestOfNormalNameTable )
 {
 	TestLocateTable();TestInsertRecord();
 	TestLocateTable();TestSelectRecord();
-}
-
-TEST_F( TestCreateNameTable1000_Normal, UpdateOptionOfNormalNameTable )
-{
 	TestUpdateRecord();TestSelectRecord();
 }
 
+///< 创建一堆数据库对象
+TEST_F( TestAnyMessage_ID_X, CreateBundleOfDatabasePointer )
+{
+	for( int n = 0; n < 5; n++ )	{
+		ASSERT_NE( GetFactoryObject().GrapDatabaseInterface(), (I_Database*)NULL );
+	}
+}
+
+///< 对一数据库进行数据表的创建删除重复测试
 TEST_F( TestAnyMessage_ID_X, CreateDeleteTest )
 {
 	I_Table*			pTable = NULL;
@@ -429,8 +435,14 @@ TEST_F( TestAnyMessage_ID_X, CreateDeleteTest )
 
 	///< 创建所有数据表
 	TestCreateAllTable();
+	///< 创建所有数据表
+	TestCreateAllTable();
+	///< 创建所有数据表
+	TestCreateAllTable();
 	///< 清空所有数据库
 	TestDeleteAllTables();
+	///< 随意定义一个不存在的数据表
+	for( unsigned int i = 0; i < nCount; i++ )	{	TestLocateTable( m_vctIMessage[i]->MessageID(), &pTable, false );	}
 	for( int a = 0; a < 10; a++ ) {
 		///< 再次，创建所有数据表
 		TestCreateAllTable();
@@ -453,6 +465,7 @@ TEST_F( TestAnyMessage_ID_X, CreateDeleteTest )
 	for( unsigned int ii = 0; ii < nCount; ii++ )	{	TestLocateTable( m_vctIMessage[ii]->MessageID(), &pTable, false );	}
 }
 
+///< 对一数据库表进行插入更新测试
 TEST_F( TestAnyMessage_ID_X, InsertUpdateTest )
 {
 	I_Table*			pTable = NULL;
@@ -469,7 +482,9 @@ TEST_F( TestAnyMessage_ID_X, InsertUpdateTest )
 	///< 重复创建所有数据表
 	TestCreateAllTable();
 	///< 随意定义一个存在的数据表
-	for( unsigned int j = 0; j < nCount; j++ )	{	TestLocateTable( m_vctIMessage[j]->MessageID(), &pTable, true );	}
+	for( unsigned int j = 0; j < nCount; j++ )	{
+		TestLocateTable( m_vctIMessage[j]->MessageID(), &pTable, true );
+	}
 	///< 各数据表记录插入循环
 	for( unsigned int n = 0; n < nCount; n++ )	{
 		TestInsert1Table( m_vctIMessage[n], true, 1 );
@@ -480,6 +495,13 @@ TEST_F( TestAnyMessage_ID_X, InsertUpdateTest )
 	}
 }
 
+///< 释放所有分配出来的数据库资源
+TEST_F( TestAnyMessage_ID_X, FreeAllOfDatabasePointer )
+{
+	for( int n = 0; n < 10; n++ )	{
+		ASSERT_EQ( true, GetFactoryObject().ReleaseAllDatabase() );
+	}
+}
 
 
 ///< ---------------------- 单元测试初始化类定义 -------------------------
