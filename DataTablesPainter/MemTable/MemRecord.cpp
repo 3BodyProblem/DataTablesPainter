@@ -2,6 +2,7 @@
 #include "MemRecord.h"
 #include <string.h>
 #include <math.h>
+#include <stdexcept>
 
 
 namespace MemoryCollection
@@ -72,6 +73,11 @@ __int64 CodeKey::GenHashKey( const char* pszCode, unsigned int nCodeLen )
 	}
 
 	nCodeKey += nTmpVal;
+
+	if( nCodeKey < 0 )
+	{
+		throw std::runtime_error( "CodeKey::GenHashKey() : invalid hash key..." );
+	}
 
 	return nCodeKey;
 }

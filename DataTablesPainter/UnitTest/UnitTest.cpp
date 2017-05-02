@@ -428,7 +428,7 @@ TEST_F( TestAnyMessage_ID_X, CreateBundleOfDatabasePointer )
 }
 
 ///< 对一数据库进行数据表的创建删除重复测试
-TEST_F( TestAnyMessage_ID_X, CreateDeleteTest )
+TEST_F( TestAnyMessage_ID_X, CreateDeleteAllTablesTest )
 {
 	I_Table*			pTable = NULL;
 	unsigned int		nCount = m_vctIMessage.size();
@@ -495,7 +495,7 @@ TEST_F( TestAnyMessage_ID_X, InsertUpdateTest )
 	}
 }
 
-///< 释放所有分配出来的数据库资源
+///< 释放一堆数据库资源
 TEST_F( TestAnyMessage_ID_X, FreeAllOfDatabasePointer )
 {
 	for( int n = 0; n < 10; n++ )	{

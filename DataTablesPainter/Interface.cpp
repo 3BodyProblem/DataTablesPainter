@@ -62,7 +62,7 @@ bool RecordBlock::Compare( const RecordBlock& refRecord )
 
 int RecordBlock::CloneFrom( const RecordBlock& refRecord )
 {
-	if( true == refRecord.IsNone() )
+	if( true == IsNone() || true == refRecord.IsNone() )
 	{
 		return -1;
 	}
