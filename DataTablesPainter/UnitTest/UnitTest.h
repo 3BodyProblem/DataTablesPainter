@@ -175,10 +175,12 @@ public:
 			::memset( SecurityID, 0, sizeof(SecurityID) );
 			::strncpy( SecurityID, pszCode, ::strlen( pszCode ) );
 			MsgID = nMsgID;
+			Value = 0;
 		}
 
 		char				SecurityID[64];				///< ÉÌÆ·´úÂë
 		unsigned int		MsgID;
+		unsigned int		Value;
 	};
 
 	VariableWidthTable4MsgIDTest();

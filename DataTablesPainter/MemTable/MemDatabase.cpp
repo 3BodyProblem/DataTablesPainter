@@ -57,6 +57,7 @@ bool MemDatabase::CreateTable( unsigned int nBindID, unsigned int nRecordWidth, 
 		{	///< 使用数据表元信息结构初始化刚分配的数据表对象
 			if( m_nUsedTableNum >= (MAX_TABBLE_NO-1) )
 			{
+				::printf( "MemDatabase::CreateTable() : no more space\n" );
 				return false;
 			}
 
@@ -87,6 +88,7 @@ I_Table* MemDatabase::QueryTable( unsigned int nBindID )
 
 		if( true == infoPosition.Empty() )											///< 该数据表索引信息不存在
 		{
+			::printf( "MemDatabase::QueryTable() : invalid BindID, subscript out of range of memo-tables list\n" );
 			return NULL;
 		}
 
@@ -94,11 +96,11 @@ I_Table* MemDatabase::QueryTable( unsigned int nBindID )
 	}
 	catch( std::exception& err )
 	{
-		::printf( "MemDatabase::CreateTable() : exception : %s\n", err.what() );
+		::printf( "MemDatabase::QueryTable() : exception : %s\n", err.what() );
 	}
 	catch( ... )
 	{
-		::printf( "MemDatabase::CreateTable() : unknow exception\n" );
+		::printf( "MemDatabase::QueryTable() : unknow exception\n" );
 	}
 
 	return NULL;
@@ -110,6 +112,7 @@ I_Table* MemDatabase::operator[]( unsigned int nTableIndex )
 
 	if( nTableIndex >= m_nUsedTableNum || nTableIndex >= MAX_TABBLE_NO )
 	{
+		::printf( "MemDatabase::operator[]() : subscript out of range of memo-tables list\n" );
 		return NULL;
 	}
 
@@ -133,11 +136,11 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 	}
 	catch( std::exception& err )
 	{
-		::printf( "%s \n", err.what() );
+		::printf( "MemDatabase::LoadFromDisk() : %s \n", err.what() );
 	}
 	catch( ... )
 	{
-		::printf( "unknow exception\n" );
+		::printf( "MemDatabase::LoadFromDisk() : unknow exception\n" );
 	}
 
 	return false;
@@ -153,11 +156,11 @@ bool MemDatabase::SaveToDisk( const char* pszDataFile )
 	}
 	catch( std::exception& err )
 	{
-		::printf( "%s \n", err.what() );
+		::printf( "MemDatabase::SaveToDisk() : %s \n", err.what() );
 	}
 	catch( ... )
 	{
-		::printf( "unknow exception\n" );
+		::printf( "MemDatabase::SaveToDisk() : unknow exception\n" );
 	}
 
 	return false;

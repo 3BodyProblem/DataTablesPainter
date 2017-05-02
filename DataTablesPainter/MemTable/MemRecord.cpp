@@ -23,6 +23,7 @@ __int64 CodeKey::GetKeyID() const
 
 	if( NULL == m_pszCode )
 	{
+		throw std::runtime_error( "CodeKey::GetKeyID() : invalid hash key..." );
 		return -1;
 	}
 

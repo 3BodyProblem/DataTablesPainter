@@ -184,7 +184,12 @@ bool NameTable4CodeTest::MoveNext()
 
 char* NameTable4CodeTest::MessagePointer()
 {
-	return (char*)&(m_vctMessage[m_nCurDataPos]);
+	T_Message1234_NameTable&		refData = m_vctMessage[m_nCurDataPos];
+	static	unsigned int			sInt = 0;
+
+	refData.SecurityType = sInt++;
+
+	return (char*)(&refData);
 }
 
 SnapTable4ValueTest::SnapTable4ValueTest()
@@ -218,7 +223,12 @@ bool SnapTable4ValueTest::MoveNext()
 
 char* SnapTable4ValueTest::MessagePointer()
 {
-	return (char*)&(m_vctMessage[m_nCurDataPos]);
+	T_Message2003_SnapTable&		refData = m_vctMessage[m_nCurDataPos];
+	static	unsigned int			sInt = 0;
+
+	refData.Now = sInt++;
+
+	return (char*)(&refData);
 }
 
 VariableWidthTable4MsgIDTest::VariableWidthTable4MsgIDTest()
@@ -267,7 +277,12 @@ bool VariableWidthTable4MsgIDTest::MoveNext()
 
 char* VariableWidthTable4MsgIDTest::MessagePointer()
 {
-	return (char*)&(m_vctMessage[m_nCurDataPos]);
+	T_MessageX_Table&		refData = m_vctMessage[m_nCurDataPos];
+	static	unsigned int	sInt = 0;
+
+	refData.Value = sInt++;
+
+	return (char*)(&refData);
 }
 
 
@@ -323,11 +338,14 @@ void TestAnyMessage_ID_X::TestInsert1Table( I_Message* pMessage, bool IsExist, i
 
 	do
 	{
-		ASSERT_EQ( nAffectNum, pTable->InsertRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
+		char	pszTmpData[512] = { 0 };
 
-		RecordBlock	record = pTable->SelectRecord( pMessage->MessagePointer(), pMessage->MessageLength() );
+		::memcpy( pszTmpData, pMessage->MessagePointer(), pMessage->MessageLength() );
+		ASSERT_EQ( nAffectNum, pTable->InsertRecord( pszTmpData, pMessage->MessageLength() ) );
+
+		RecordBlock	record = pTable->SelectRecord( pszTmpData, pMessage->MessageLength() );
 		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
-		ASSERT_EQ( true, record.Compare( RecordBlock(pMessage->MessagePointer(), pMessage->MessageLength()) ) );
+		ASSERT_EQ( true, record.Compare( RecordBlock(pszTmpData, pMessage->MessageLength()) ) );
 	} while( true == pMessage->MoveNext() );
 }
 
@@ -345,11 +363,16 @@ void TestAnyMessage_ID_X::TestUpdate1Table( I_Message* pMessage, bool IsExist, i
 
 	do
 	{
-		ASSERT_EQ( nAffectNum, pTable->UpdateRecord( pMessage->MessagePointer(), pMessage->MessageLength() ) );
+		char	pszTmpData[512] = { 0 };
 
-		RecordBlock	record = pTable->SelectRecord( pMessage->MessagePointer(), pMessage->MessageLength() );
-		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
-		ASSERT_EQ( true, record.Compare( RecordBlock(pMessage->MessagePointer(), pMessage->MessageLength()) ) );
+		::memcpy( pszTmpData, pMessage->MessagePointer(), pMessage->MessageLength() );
+		ASSERT_EQ( nAffectNum, pTable->UpdateRecord( pszTmpData, pMessage->MessageLength() ) );
+
+		RecordBlock	record = pTable->SelectRecord( pszTmpData, pMessage->MessageLength() );
+		if( 0 != nAffectNum )	{
+			ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
+			ASSERT_EQ( true, record.Compare( RecordBlock(pszTmpData, pMessage->MessageLength()) ) );
+		}
 	} while( true == pMessage->MoveNext() );
 }
 
@@ -442,7 +465,9 @@ TEST_F( TestAnyMessage_ID_X, CreateDeleteAllTablesTest )
 	///< 清空所有数据库
 	TestDeleteAllTables();
 	///< 随意定义一个不存在的数据表
+	::printf( "query table in empty database.........................................\n" );
 	for( unsigned int i = 0; i < nCount; i++ )	{	TestLocateTable( m_vctIMessage[i]->MessageID(), &pTable, false );	}
+	::printf( "happy ending..........................................................\n" );
 	for( int a = 0; a < 10; a++ ) {
 		///< 再次，创建所有数据表
 		TestCreateAllTable();
@@ -462,10 +487,12 @@ TEST_F( TestAnyMessage_ID_X, CreateDeleteAllTablesTest )
 		TestDeleteAllTables();
 	}
 	///< 随意定义一个不存在的数据表
+	::printf( "query table in empty database.........................................\n" );
 	for( unsigned int ii = 0; ii < nCount; ii++ )	{	TestLocateTable( m_vctIMessage[ii]->MessageID(), &pTable, false );	}
+	::printf( "happy ending..........................................................\n" );
 }
 
-///< 对一数据库表进行插入更新测试
+///< 对一数据库表进行插入更新测试(成功状态)
 TEST_F( TestAnyMessage_ID_X, InsertUpdateTest )
 {
 	I_Table*			pTable = NULL;
@@ -491,15 +518,28 @@ TEST_F( TestAnyMessage_ID_X, InsertUpdateTest )
 	}
 	///< 各数据表记录更新循环
 	for( unsigned int m = 0; m < nCount; m++ )	{
-		TestUpdate1Table( m_vctIMessage[m], true, 0 );
+		TestUpdate1Table( m_vctIMessage[m], true, 1 );
 	}
 }
 
-///< 释放一堆数据库资源
-TEST_F( TestAnyMessage_ID_X, FreeAllOfDatabasePointer )
+///< 对空数据表作记录空更新操作测试
+TEST_F( TestAnyMessage_ID_X, UpdateBeforeInsert )
 {
-	for( int n = 0; n < 10; n++ )	{
-		ASSERT_EQ( true, GetFactoryObject().ReleaseAllDatabase() );
+	I_Table*			pTable = NULL;
+	unsigned int		nCount = m_vctIMessage.size();
+
+	///< 清空所有数据库
+	TestDeleteAllTables();
+	///< 创建所有数据表
+	TestCreateAllTable();
+	///< 随意定义一个存在的数据表
+	for( unsigned int j = 0; j < nCount; j++ )	{
+		TestLocateTable( m_vctIMessage[j]->MessageID(), &pTable, true );
+	}
+
+	///< 各数据表记录更新循环
+	for( unsigned int m = 0; m < nCount; m++ )	{
+		TestUpdate1Table( m_vctIMessage[m], true, 0 );
 	}
 }
 
@@ -516,13 +556,17 @@ I_Database* UnitTestEnv::GetDatabasePtr()
 
 void UnitTestEnv::SetUp()
 {
+	///< 创建一个数据库
 	m_pIDatabase = GetFactoryObject().GrapDatabaseInterface();
 	ASSERT_NE( m_pIDatabase, (I_Database*)NULL );
 }
 
 void UnitTestEnv::TearDown()
 {
-	ASSERT_EQ( GetFactoryObject().ReleaseAllDatabase(), true );
+	///< 释放一堆数据库资源
+	for( int n = 0; n < 10; n++ )	{
+		ASSERT_EQ( GetFactoryObject().ReleaseAllDatabase(), true );
+	}
 }
 
 

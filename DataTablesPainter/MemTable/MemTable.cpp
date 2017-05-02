@@ -63,6 +63,7 @@ bool DynamicTable::EnlargeBuffer( unsigned long nAllocItemNum )
 
 	if( 0 == nAllocItemNum )
 	{
+		::printf( "DynamicTable::EnlargeBuffer() : invalid arguments [Zero]\n" );
 		return false;
 	}
 
@@ -70,6 +71,7 @@ bool DynamicTable::EnlargeBuffer( unsigned long nAllocItemNum )
 	{
 		if( NULL == (m_pRecordsBuffer = (char*)::malloc( nNewBufferSize )) )
 		{
+			::printf( "DynamicTable::EnlargeBuffer() : failed 2 ::malloc() buffer\n" );
 			return false;
 		}
 
@@ -81,6 +83,7 @@ bool DynamicTable::EnlargeBuffer( unsigned long nAllocItemNum )
 		char* pTemp = (char*)::malloc( m_nMaxBufferSize + nNewBufferSize );
 		if( pTemp == NULL )
 		{
+			::printf( "DynamicTable::EnlargeBuffer() : failed 2 ::remalloc() buffer\n" );
 			return false;
 		}
 
@@ -101,6 +104,7 @@ RecordBlock DynamicTable::SelectRecord( char* pKeyStr, unsigned int nKeyLen )
 	{
 		if( NULL == pKeyStr || nKeyLen <= 0 )
 		{
+			::printf( "DynamicTable::SelectRecord() : invalid arguments\n" );
 			return RecordBlock( NULL, 0 );
 		}
 
@@ -148,6 +152,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen )
 		int		nInsertAffect = m_oHashTableOfIndex.NewKey( nDataSeqKey, T_RECORD_POS( m_nCurrentDataSize/m_oTableMeta.m_nRecordWidth ) );
 		if( nInsertAffect < 0 )	///< 新增记录:	位置为, 第 0 个索引位置
 		{	///< 记录不存在，新增成功的情况
+			::printf( "DynamicTable::InsertRecord() : failed 2 insert data 2 hash table.\n" );
 			return -2;
 		}
 		else if( 0 == nInsertAffect )
@@ -161,11 +166,13 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen )
 
 		if( true == recordPostion.Empty() )
 		{
+			::printf( "DynamicTable::InsertRecord() : invalid MainKey, cannot locate record in table\n" );
 			return -3;
 		}
 
 		if( nDataOffsetIndex >= (m_nMaxBufferSize-nDataOffsetIndex) )
 		{
+			::printf( "MemDatabase::InsertRecord() : subscript out of range of memo-tables list\n" );
 			return -4;
 		}
 
@@ -215,6 +222,7 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen )
 
 		if( nDataOffsetIndex >= (m_nMaxBufferSize-nDataOffsetIndex) )
 		{
+			::printf( "MemDatabase::UpdateRecord() : subscript out of range of memo-tables list\n" );
 			return -3;
 		}
 
