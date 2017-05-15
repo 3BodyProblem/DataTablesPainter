@@ -240,6 +240,37 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen )
 	return -5;
 }
 
+int DynamicTable::CopyToBuffer( char* pBuffer, unsigned int nBufferSize )
+{
+	try
+	{
+		CriticalLock			lock( m_oCSLock );
+
+		if( m_nCurrentDataSize >= nBufferSize )
+		{
+			::printf( "DynamicTable::CopyToBuffer() : data buffer isn\'t less than data size.\n" );
+			return -1;
+		}
+
+		if( m_nCurrentDataSize > 0 )
+		{
+			::memcpy( pBuffer, m_pRecordsBuffer, m_nCurrentDataSize );
+		}
+
+		return m_nCurrentDataSize;
+	}
+	catch( std::exception& err )
+	{
+		::printf( "DynamicTable::UpdateRecord() : exception : %s\n", err.what() );
+	}
+	catch( ... )
+	{
+		::printf( "DynamicTable::UpdateRecord() : unknow exception\n" );
+	}
+
+	return -10;
+}
+
 
 
 }

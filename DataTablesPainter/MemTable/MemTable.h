@@ -101,6 +101,15 @@ public:
 	 */
 	RecordBlock								SelectRecord( char* pKeyStr, unsigned int nKeyLen );
 
+	/**
+	 * @brief								将数据表的数据原样copy到缓存
+	 * @param[in]							pBuffer					缓存地址
+	 * @param[in]							nBufferSize				缓存长度
+	 * @return								>=0						返回数据长度
+											<						出错
+	 */
+	int										CopyToBuffer( char* pBuffer, unsigned int nBufferSize );
+
 private:
 	/**
 	 * @brief								扩大现有内存缓存的分配
