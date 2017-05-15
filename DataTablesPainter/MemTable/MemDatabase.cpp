@@ -84,15 +84,21 @@ I_Table* MemDatabase::QueryTable( unsigned int nBindID )
 	try
 	{
 		CriticalLock				lock( m_oCSLock );
-		struct T_TABLE_POS_INF		infoPosition = m_HashTableOfPostion[nBindID];	///< 取得哈稀索引信息
+		struct T_TABLE_POS_INF*		pInfoPosition = m_HashTableOfPostion[nBindID];	///< 取得哈稀索引信息
 
-		if( true == infoPosition.Empty() )											///< 该数据表索引信息不存在
+		if( NULL == pInfoPosition )
 		{
-			::printf( "MemDatabase::QueryTable() : invalid BindID, subscript out of range of memo-tables list\n" );
+			::printf( "MemDatabase::QueryTable() : 1 invalid BindID, subscript out of range of memo-tables list\n" );
 			return NULL;
 		}
 
-		return &m_arrayQuotationTables[infoPosition.nTablePosition];				///< 返回对应的数据表
+		if( true == pInfoPosition->Empty() )											///< 该数据表索引信息不存在
+		{
+			::printf( "MemDatabase::QueryTable() : 2 invalid BindID, subscript out of range of memo-tables list\n" );
+			return NULL;
+		}
+
+		return &m_arrayQuotationTables[pInfoPosition->nTablePosition];				///< 返回对应的数据表
 	}
 	catch( std::exception& err )
 	{
@@ -132,6 +138,8 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 	{
 		CriticalLock	lock( m_oCSLock );
 
+		GlobalSequenceNo::GetObj().Reset();			///< 重置自增流水号
+
 		return true;
 	}
 	catch( std::exception& err )
@@ -164,6 +172,11 @@ bool MemDatabase::SaveToDisk( const char* pszDataFile )
 	}
 
 	return false;
+}
+
+unsigned __int64 MemDatabase::GetUpdateSequence()
+{
+	return GlobalSequenceNo::GetObj().GetSeqNo();
 }
 
 

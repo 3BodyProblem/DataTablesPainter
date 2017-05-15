@@ -203,6 +203,14 @@
 			Name="Infrastructure"
 			>
 			<File
+				RelativePath=".\Infrastructure\DateTime.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Infrastructure\DateTime.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Infrastructure\Hash.cpp"
 				>
 			</File>

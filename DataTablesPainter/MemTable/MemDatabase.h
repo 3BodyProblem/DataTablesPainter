@@ -81,6 +81,11 @@ public:///< Method Of Interface
 	 */
 	bool						SaveToDisk( const char* pszDataFile );
 
+	/**
+	 * @brief					取得数据更新自增流水号
+	 */
+	unsigned __int64			GetUpdateSequence();
+
 public:
 	/**
 	 * @brief					根据顺序索引值，取得数据表引用

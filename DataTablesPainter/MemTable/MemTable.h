@@ -15,6 +15,44 @@ namespace MemoryCollection
 
 
 /**
+ * @class			GlobalSequenceNo
+ * @brief			全局自增流水号生产类
+ * @author			barry
+ */
+class GlobalSequenceNo
+{
+public:
+	GlobalSequenceNo();
+
+	/**
+	 * @brief					取得单键
+	 */
+	static GlobalSequenceNo&	GetObj();
+
+public:
+	/**
+	 * @brief					重置自增seed
+	 */
+	void						Reset();
+
+	/**
+	 * @brief					产生全局自增流水号
+	 */
+	unsigned __int64			GenerateSeq();
+
+	/**
+	 * @brief					取得当前流水号
+	 */
+	unsigned __int64			GetSeqNo();
+
+protected:
+	CriticalObject				m_oLock;				///< 内存表锁
+	unsigned int				m_nBaseData;			///< 基值
+	unsigned __int64			m_nIncNum;				///< 自增值
+};
+
+
+/**
  * @class			T_RECORD_POS
  * @brief			数据记录位置信息结构
  * @author			barry
@@ -22,11 +60,12 @@ namespace MemoryCollection
  */
 struct T_RECORD_POS
 {
-	T_RECORD_POS() { nRecordPos = -1; }
-	T_RECORD_POS( unsigned int nPos ) { nRecordPos = nPos; }
-	void			Clear()	{	nRecordPos = -1;	}
-	bool			Empty() const	{	if( nRecordPos < 0 )	return true;	else	return false;	}
-	int				nRecordPos;			///< 使用数据表的索引位置
+	T_RECORD_POS() { nRecordPos = -1; nUpdateSequence = 0; }
+	T_RECORD_POS( unsigned int nPos, unsigned __int64 nUpdateSeqNo ) { nRecordPos = nPos; nUpdateSequence = nUpdateSeqNo; }
+	void				Clear()	{	nRecordPos = -1;	}
+	bool				Empty() const	{	if( nRecordPos < 0 )	return true;	else	return false;	}
+	int					nRecordPos;				///< 使用数据表的索引位置
+	unsigned __int64	nUpdateSequence;		///< 更新次数序号
 };
 
 

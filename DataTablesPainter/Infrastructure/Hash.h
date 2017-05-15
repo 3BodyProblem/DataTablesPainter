@@ -38,7 +38,7 @@ public:
 	 * @return			返回映射值
 	 * @note			如果key不存在，则抛出runtime异常
 	 */
-	const T_VALUE_TYPE	operator[]( T_KEY_TYPE nKey );
+	T_VALUE_TYPE*		operator[]( T_KEY_TYPE nKey );
 
 	/**
 	 * @brief			设置键值对
@@ -133,7 +133,7 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Ne
 }
 
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
-const T_VALUE_TYPE CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::operator[]( T_KEY_TYPE nKey )
+T_VALUE_TYPE* CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::operator[]( T_KEY_TYPE nKey )
 {
 	T_KEY_TYPE				nKeyPos = nKey % MAX_BUCKET_SIZE;
 	struct T_ListNode*		pNode = m_BucketOfHash + nKeyPos;
@@ -142,7 +142,7 @@ const T_VALUE_TYPE CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DAT
 	{
 		if( nKey == pNode->nHashKey )
 		{
-			return m_ArrayOfData[pNode->nDataPos];
+			return &(m_ArrayOfData[pNode->nDataPos]);
 		}
 		else if( true == pNode->HasNext() )
 		{
@@ -154,8 +154,9 @@ const T_VALUE_TYPE CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DAT
 		}
 	}
 
-	return T_VALUE_TYPE();
+	return NULL;
 }
+
 
 #endif
 

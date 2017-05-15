@@ -1,8 +1,46 @@
 #include "MemTable.h"
+#include "../Infrastructure/DateTime.h"
 
 
 namespace MemoryCollection
 {
+
+
+GlobalSequenceNo::GlobalSequenceNo()
+ : m_nIncNum( 0 ), m_nBaseData( 0 )
+{
+	m_nBaseData = DateTime::Now().DateToLong() * 1000000000;
+}
+
+GlobalSequenceNo& GlobalSequenceNo::GetObj()
+{
+	static GlobalSequenceNo		obj;
+
+	return obj;
+}
+
+void GlobalSequenceNo::Reset()
+{
+	CriticalLock			lock( m_oLock );
+
+	m_nIncNum = 0;
+	m_nBaseData = DateTime::Now().DateToLong() * 1000000000;
+}
+
+unsigned __int64 GlobalSequenceNo::GetSeqNo()
+{
+	CriticalLock			lock( m_oLock );
+
+	return m_nBaseData + m_nIncNum;
+}
+
+unsigned __int64 GlobalSequenceNo::GenerateSeq()
+{
+	CriticalLock			lock( m_oLock );
+
+	return m_nBaseData + m_nIncNum++;
+}
+
 
 DynamicTable::TableMeta::TableMeta( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen )
 	: m_nBindID( nBindID ), m_nRecordWidth( nRecordWidth ), m_nKeyStrLen( nKeyStrLen )
@@ -111,9 +149,14 @@ RecordBlock DynamicTable::SelectRecord( char* pKeyStr, unsigned int nKeyLen )
 		DyncRecord				objRecord( pKeyStr, nKeyLen );
 		__int64					nDataSeqKey = objRecord.GetMainKey();
 		CriticalLock			lock( m_oCSLock );
-		T_RECORD_POS			recordPostion = m_oHashTableOfIndex[nDataSeqKey];
-		unsigned int			nRecordOffset = m_oTableMeta.m_nRecordWidth * recordPostion.nRecordPos;
+		T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
 
+		if( NULL == pRecordPostion )
+		{
+			return RecordBlock( NULL, 0 );
+		}
+
+		unsigned int			nRecordOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
 		if( nRecordOffset >= (m_nMaxBufferSize-nRecordOffset) )
 		{
 			return RecordBlock( NULL, 0 );
@@ -149,7 +192,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen )
 			}
 		}
 
-		int		nInsertAffect = m_oHashTableOfIndex.NewKey( nDataSeqKey, T_RECORD_POS( m_nCurrentDataSize/m_oTableMeta.m_nRecordWidth ) );
+		int					nInsertAffect = m_oHashTableOfIndex.NewKey( nDataSeqKey, T_RECORD_POS( m_nCurrentDataSize/m_oTableMeta.m_nRecordWidth, GlobalSequenceNo::GetObj().GenerateSeq() ) );
 		if( nInsertAffect < 0 )	///< 新增记录:	位置为, 第 0 个索引位置
 		{	///< 记录不存在，新增成功的情况
 			::printf( "DynamicTable::InsertRecord() : failed 2 insert data 2 hash table.\n" );
@@ -160,20 +203,26 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen )
 			return 0;
 		}
 
-		T_RECORD_POS			recordPostion = m_oHashTableOfIndex[nDataSeqKey];
-		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * recordPostion.nRecordPos;
+		T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
+		if( NULL == pRecordPostion )
+		{
+			::printf( "DynamicTable::InsertRecord() : invalid Sequence\n" );
+			return -3;
+		}
+
+		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
 		DyncRecord				oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
 
-		if( true == recordPostion.Empty() )
+		if( true == pRecordPostion->Empty() )
 		{
 			::printf( "DynamicTable::InsertRecord() : invalid MainKey, cannot locate record in table\n" );
-			return -3;
+			return -4;
 		}
 
 		if( nDataOffsetIndex >= (m_nMaxBufferSize-nDataOffsetIndex) )
 		{
 			::printf( "MemDatabase::InsertRecord() : subscript out of range of memo-tables list\n" );
-			return -4;
+			return -5;
 		}
 
 		if( oCurRecord.CloneFrom( objRecord ) >= 0 )
@@ -199,6 +248,7 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen )
 {
 	try
 	{
+		int						nAffectNum = 0;
 		CriticalLock			lock( m_oCSLock );
 		DyncRecord				objRecord( pRecord, nRecordLen );
 		__int64					nDataSeqKey = objRecord.GetMainKey();
@@ -211,11 +261,16 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen )
 			}
 		}
 
-		T_RECORD_POS			recordPostion = m_oHashTableOfIndex[nDataSeqKey];
-		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * recordPostion.nRecordPos;
+		T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
+		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
 		DyncRecord				oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
 
-		if( true == recordPostion.Empty() )
+		if( NULL == pRecordPostion )
+		{
+			return 0;
+		}
+
+		if( true == pRecordPostion->Empty() )
 		{
 			return 0;
 		}
@@ -226,7 +281,13 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen )
 			return -3;
 		}
 
-		return oCurRecord.CloneFrom( objRecord );
+		nAffectNum = oCurRecord.CloneFrom( objRecord );
+		if( nAffectNum > 0 )
+		{
+			pRecordPostion->nUpdateSequence = GlobalSequenceNo::GetObj().GenerateSeq();
+		}
+
+		return nAffectNum;
 	}
 	catch( std::exception& err )
 	{
