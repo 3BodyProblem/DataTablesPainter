@@ -305,7 +305,7 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned
 	return -5;
 }
 
-int DynamicTable::CopyToBuffer( char* pBuffer, unsigned int nBufferSize )
+int DynamicTable::CopyToBuffer( char* pBuffer, unsigned int nBufferSize, unsigned __int64& nDbSerialNo )
 {
 	try
 	{
@@ -317,12 +317,32 @@ int DynamicTable::CopyToBuffer( char* pBuffer, unsigned int nBufferSize )
 			return -1;
 		}
 
-		if( m_nCurrentDataSize > 0 )
+		nDbSerialNo = GlobalSequenceNo::GetObj().GenerateSeq();
+		if( m_nCurrentDataSize > 0 && 0 == nDbSerialNo )
 		{
 			::memcpy( pBuffer, m_pRecordsBuffer, m_nCurrentDataSize );
+			return m_nCurrentDataSize;
 		}
+		else
+		{
+			unsigned int		nRecordsSize = 0;
+			unsigned int		nCount = m_oHashTableOfIndex.Size();
 
-		return m_nCurrentDataSize;
+			for( unsigned int n = 0; n < nCount; n++ )
+			{
+				T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex.Index( n );
+
+				if( NULL != pRecordPostion )
+				{
+					unsigned int	nOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
+
+					::memcpy( pBuffer+nRecordsSize, m_pRecordsBuffer+nOffset, m_oTableMeta.m_nRecordWidth );
+					nRecordsSize += m_oTableMeta.m_nRecordWidth;
+				}
+			}
+
+			return nRecordsSize;
+		}
 	}
 	catch( std::exception& err )
 	{

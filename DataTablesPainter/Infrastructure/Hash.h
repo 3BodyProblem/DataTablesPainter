@@ -33,6 +33,13 @@ public:
 	CollisionHash();
 
 	/**
+	 * @brief			根据位置索引取得映射值
+	 * @param[in]		nIndex		位置索引
+	 * @return			取得对应值
+	 */
+	T_VALUE_TYPE*		Index( unsigned int nIndex );
+
+	/**
 	 * @brief			根据key取得对应的映射值
 	 * @param[in]		nKey		索引值
 	 * @return			返回映射值
@@ -49,6 +56,11 @@ public:
 						<0			失败
 	 */
 	int					NewKey( T_KEY_TYPE nKey, T_VALUE_TYPE oData );
+
+	/**
+	 * @brief			获取元素的总数量
+	 */
+	unsigned int		Size();
 
 	/**
 	 * @brief			清空所有数据
@@ -130,6 +142,25 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Ne
 	}
 
 	return -1;
+}
+
+template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
+unsigned int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Size()
+{
+	return m_nUsedNumOfArrayData;
+}
+
+template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
+T_VALUE_TYPE* CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Index( unsigned int nIndex )
+{
+	struct T_ListNode*		pNode = m_BucketOfHash + nIndex;
+
+	if( false == pNode->IsNull() )
+	{
+		return NULL;
+	}
+
+	return &(m_ArrayOfData[pNode->nDataPos]);
 }
 
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
