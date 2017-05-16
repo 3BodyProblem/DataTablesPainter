@@ -59,7 +59,8 @@ void TestCreateNameTable1000_ZeroMemo::TestLocateTable()
 void TestCreateNameTable1000_ZeroMemo::TestInsertRecord()
 {
 	for( int n = 0; n < 10; n++ ) {
-		ASSERT_LE( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+		unsigned __int64	nSerialNo = 0;
+		ASSERT_LE( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable), nSerialNo ) );
 	}
 }
 
@@ -88,7 +89,8 @@ void TestCreateNameTable1000_Normal::SetUpTestCase()
 void TestCreateNameTable1000_Normal::TestInsertRecord()
 {
 	for( int n = 0; n < 10; n++ ) {
-		ASSERT_LE( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+		unsigned __int64	nSerialNo = 0;
+		ASSERT_LE( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable), nSerialNo ) );
 	}
 }
 
@@ -105,13 +107,15 @@ void TestCreateNameTable1000_Normal::TestUpdateRecord()
 
 	for( int n = 0; n < 10; n++ )
 	{
+		unsigned __int64	nSerialNo = 0;
+
 		if( 0 == n )
 		{
-			ASSERT_LT( 0, s_pTablePtr->UpdateRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+			ASSERT_LT( 0, s_pTablePtr->UpdateRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable), nSerialNo ) );
 		}
 		else
 		{
-			ASSERT_EQ( 0, s_pTablePtr->UpdateRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) ) );
+			ASSERT_EQ( 0, s_pTablePtr->UpdateRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable), nSerialNo ) );
 		}
 	}
 }
@@ -338,10 +342,11 @@ void TestAnyMessage_ID_X::TestInsert1Table( I_Message* pMessage, bool IsExist, i
 
 	do
 	{
-		char	pszTmpData[512] = { 0 };
+		unsigned __int64	nSerialNo = 0;
+		char				pszTmpData[512] = { 0 };
 
 		::memcpy( pszTmpData, pMessage->MessagePointer(), pMessage->MessageLength() );
-		ASSERT_EQ( nAffectNum, pTable->InsertRecord( pszTmpData, pMessage->MessageLength() ) );
+		ASSERT_EQ( nAffectNum, pTable->InsertRecord( pszTmpData, pMessage->MessageLength(), nSerialNo ) );
 
 		RecordBlock	record = pTable->SelectRecord( pszTmpData, pMessage->MessageLength() );
 		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
@@ -363,10 +368,11 @@ void TestAnyMessage_ID_X::TestUpdate1Table( I_Message* pMessage, bool IsExist, i
 
 	do
 	{
-		char	pszTmpData[512] = { 0 };
+		unsigned __int64	nSerialNo = 0;
+		char				pszTmpData[512] = { 0 };
 
 		::memcpy( pszTmpData, pMessage->MessagePointer(), pMessage->MessageLength() );
-		ASSERT_EQ( nAffectNum, pTable->UpdateRecord( pszTmpData, pMessage->MessageLength() ) );
+		ASSERT_EQ( nAffectNum, pTable->UpdateRecord( pszTmpData, pMessage->MessageLength(), nSerialNo ) );
 
 		RecordBlock	record = pTable->SelectRecord( pszTmpData, pMessage->MessageLength() );
 		if( 0 != nAffectNum )	{

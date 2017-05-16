@@ -116,21 +116,23 @@ public:
 	 * @brief								追加新数据
 	 * @param[in]							pRecord					记录体地址
 	 * @param[in]							nRecordLen				记录体长度
+	 * @param[out]							nDbSerialNo				数据库新增，更新操作流水号
 	 * @return								>0						增加成功
 											=0						记录已经存在，不需要增加
 											!=0						失败
 	 */
-	int										InsertRecord( char* pRecord, unsigned int nRecordLen ); 
+	int										InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned __int64& nDbSerialNo ); 
 
 	/**
 	 * @brief								更新数据
 	 * @param[in]							pRecord					记录体地址
 	 * @param[in]							nRecordLen				记录体长度
+	 * @param[out]							nDbSerialNo				数据库新增，更新操作流水号
 	 * @return								>0						增加成功
 											=0						记录已经存在，不需要增加
 											<0						失败
 	 */
-	virtual int								UpdateRecord( char* pRecord, unsigned int nRecordLen ); 
+	virtual int								UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned __int64& nDbSerialNo ); 
 
 	/**
 	 * @brief								索引出记录对象

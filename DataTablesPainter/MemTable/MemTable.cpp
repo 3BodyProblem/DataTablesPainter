@@ -9,7 +9,7 @@ namespace MemoryCollection
 GlobalSequenceNo::GlobalSequenceNo()
  : m_nIncNum( 0 ), m_nBaseData( 0 )
 {
-	m_nBaseData = DateTime::Now().DateToLong() * 1000000000;
+	m_nBaseData = DateTime::Now().DateToLong() % 1000000 * 10000000000;
 }
 
 GlobalSequenceNo& GlobalSequenceNo::GetObj()
@@ -24,7 +24,7 @@ void GlobalSequenceNo::Reset()
 	CriticalLock			lock( m_oLock );
 
 	m_nIncNum = 0;
-	m_nBaseData = DateTime::Now().DateToLong() * 1000000000;
+	m_nBaseData = DateTime::Now().DateToLong() % 1000000 * 10000000000;
 }
 
 unsigned __int64 GlobalSequenceNo::GetSeqNo()
@@ -176,7 +176,7 @@ RecordBlock DynamicTable::SelectRecord( char* pKeyStr, unsigned int nKeyLen )
 	return RecordBlock( NULL, 0 );
 }
 
-int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen )
+int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned __int64& nDbSerialNo )
 {
 	try
 	{
@@ -184,6 +184,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen )
 		DyncRecord				objRecord( pRecord, nRecordLen );
 		__int64					nDataSeqKey = objRecord.GetMainKey();
 
+		nDbSerialNo = 0;
 		if( NULL == m_pRecordsBuffer || m_nMaxBufferSize <= m_nCurrentDataSize )
 		{	///< 内存未分配的情况 或 内存已经用完的情况
 			if( false == EnlargeBuffer( (0==m_nMaxBufferSize)?1:1024 ) )
@@ -192,7 +193,8 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen )
 			}
 		}
 
-		int					nInsertAffect = m_oHashTableOfIndex.NewKey( nDataSeqKey, T_RECORD_POS( m_nCurrentDataSize/m_oTableMeta.m_nRecordWidth, GlobalSequenceNo::GetObj().GenerateSeq() ) );
+		int						nInsertAffect = m_oHashTableOfIndex.NewKey( nDataSeqKey
+											, T_RECORD_POS( m_nCurrentDataSize/m_oTableMeta.m_nRecordWidth, (nDbSerialNo=GlobalSequenceNo::GetObj().GenerateSeq()) ) );
 		if( nInsertAffect < 0 )	///< 新增记录:	位置为, 第 0 个索引位置
 		{	///< 记录不存在，新增成功的情况
 			::printf( "DynamicTable::InsertRecord() : failed 2 insert data 2 hash table.\n" );
@@ -244,7 +246,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen )
 	return -5;
 }
 
-int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen )
+int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned __int64& nDbSerialNo )
 {
 	try
 	{
@@ -253,6 +255,7 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen )
 		DyncRecord				objRecord( pRecord, nRecordLen );
 		__int64					nDataSeqKey = objRecord.GetMainKey();
 
+		nDbSerialNo = 0;
 		if( NULL == m_pRecordsBuffer || m_nMaxBufferSize <= m_nCurrentDataSize )
 		{	///< 内存未分配的情况 或 内存已经用完的情况
 			if( false == EnlargeBuffer( (0==m_nMaxBufferSize)?1:1024 ) )
@@ -284,7 +287,8 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen )
 		nAffectNum = oCurRecord.CloneFrom( objRecord );
 		if( nAffectNum > 0 )
 		{
-			pRecordPostion->nUpdateSequence = GlobalSequenceNo::GetObj().GenerateSeq();
+			nDbSerialNo = GlobalSequenceNo::GetObj().GenerateSeq();
+			pRecordPostion->nUpdateSequence = nDbSerialNo;
 		}
 
 		return nAffectNum;
