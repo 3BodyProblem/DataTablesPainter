@@ -185,6 +185,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 {
 	try
 	{
+		T_RECORD_POS*			pRecordPostion = NULL;
 		CriticalLock			lock( m_oCSLock );
 		DyncRecord				objRecord( pRecord, nRecordLen );
 		__int64					nDataSeqKey = objRecord.GetMainKey();
@@ -210,9 +211,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 			return 0;
 		}
 
-		T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
-		if( NULL == pRecordPostion )
-		{
+		if( NULL == (pRecordPostion = m_oHashTableOfIndex[nDataSeqKey]) )	{
 			::printf( "DynamicTable::InsertRecord() : invalid Sequence\n" );
 			return -3;
 		}
@@ -256,6 +255,7 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned
 	try
 	{
 		int						nAffectNum = 0;
+		T_RECORD_POS*			pRecordPostion = NULL;
 		CriticalLock			lock( m_oCSLock );
 		DyncRecord				objRecord( pRecord, nRecordLen );
 		__int64					nDataSeqKey = objRecord.GetMainKey();
@@ -269,17 +269,14 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned
 			}
 		}
 
-		T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
-		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
-		DyncRecord				oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
-
-		if( NULL == pRecordPostion )
-		{
+		if( NULL == (pRecordPostion = m_oHashTableOfIndex[nDataSeqKey]) )	{
 			return 0;
 		}
 
-		if( true == pRecordPostion->Empty() )
-		{
+		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
+		DyncRecord				oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
+
+		if( true == pRecordPostion->Empty() )	{
 			return 0;
 		}
 

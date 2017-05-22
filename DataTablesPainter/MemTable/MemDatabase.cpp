@@ -102,13 +102,13 @@ I_Table* MemDatabase::QueryTable( unsigned int nBindID )
 
 		if( NULL == pInfoPosition )
 		{
-			::printf( "MemDatabase::QueryTable() : 1 invalid BindID, subscript out of range of memo-tables list\n" );
+			::printf( "MemDatabase::QueryTable() : 1 invalid BindID, subscript out of range of memo-tables list, BindID=%u\n", nBindID );
 			return NULL;
 		}
 
 		if( true == pInfoPosition->Empty() )											///< 该数据表索引信息不存在
 		{
-			::printf( "MemDatabase::QueryTable() : 2 invalid BindID, subscript out of range of memo-tables list\n" );
+			::printf( "MemDatabase::QueryTable() : 2 invalid BindID, subscript out of range of memo-tables list, BindID=%u\n", nBindID );
 			return NULL;
 		}
 
@@ -150,64 +150,52 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 {
 	try
 	{
-		MemDatabase&			refDB = *this;
 		int						nErrorCode = 0;
-		char					pszTmp[128] = { 0 };
+		unsigned int			s_nLastPos = 0;
 		CriticalLock			lock( m_oCSLock );
-		unsigned int			nTableCount = GetTableCount();
 
-		GlobalSequenceNo::GetObj().Reset();			///< 重置自增流水号
-		if( 0 != (nErrorCode=DeleteTables()) )
-		{
+		GlobalSequenceNo::GetObj().Reset();				///< 重置自增流水号
+		if( 0 != (nErrorCode=DeleteTables()) )	{
 			::printf( "MemDatabase::LoadFromDisk() : failed 2 clean all tables in mem-database \n", nErrorCode );
 			return false;
 		}
 
 		MemoDumper<char>		fileMeta( true, JoinPath( pszDataFile, "meta.dump" ).c_str(), 0 );
-		if( false == fileMeta.IsOpen() )
-		{
+		if( false == fileMeta.IsOpen() )	{
 			::printf( "MemDatabase::LoadFromDisk() : failed 2 load meta info. \n" );
 			return false;
 		}
 
-		unsigned int			s_nLastPos = 0;
-		int						nDataLen = fileMeta.Read( pszTmp, sizeof(pszTmp) );
+		int						nDataLen = fileMeta.Read( m_pQueryBuffer, MAX_QUERY_BUFFER_LEN );
 		for( unsigned int nOffset = 0; nOffset < nDataLen; nOffset++ )
 		{
-			if( ',' == pszTmp[nOffset] )
+			if( ',' == m_pQueryBuffer[nOffset] )
 			{
-				std::string		sFileName( pszTmp+s_nLastPos, nOffset-s_nLastPos );
-				unsigned int	nDataID = ::atol( sFileName.c_str() );
-
-				sFileName += ".dump";
-				MemoDumper<char>	fileDump( true, JoinPath( pszDataFile, sFileName.c_str() ).c_str(), 0 );
-
-				if( false == fileDump.IsOpen() )
-				{
-					::printf( "MemDatabase::LoadFromDisk() : failed 2 load dump file, %s \n", sFileName.c_str() );
-					return false;
-				}
-
 				I_Table*			pTable = NULL;
 				char				pszRecord[512] = { 0 };
 				unsigned __int64	nSerialNo = 0;
 				unsigned int		nRecordWidth = 0;
+				std::string			sFileName( m_pQueryBuffer+s_nLastPos, nOffset-s_nLastPos );
+				unsigned int		nDataID = ::atol( sFileName.c_str() );
+				MemoDumper<char>	fileDump( true, JoinPath( pszDataFile, (sFileName+".dump").c_str() ).c_str(), 0 );
 
-				if( fileDump.Read( (char*)&nRecordWidth, sizeof(nRecordWidth) ) < 0 )
-				{
+				if( false == fileDump.IsOpen() )	{
+					::printf( "MemDatabase::LoadFromDisk() : failed 2 load dump file, %s \n", sFileName.c_str() );
+					return false;
+				}
+
+				if( fileDump.Read( (char*)&nRecordWidth, sizeof(nRecordWidth) ) < 0 )	{
 					::printf( "MemDatabase::LoadFromDisk() : failed 2 read dump file \n" );
 					return false;
 				}
 
 				for( int n = 0; true; n++ )
 				{
-					if( fileDump.Read( pszRecord, nRecordWidth ) < 0 )
-					{
+					if( fileDump.Read( pszRecord, nRecordWidth ) < 0 )	{
 						break;
 					}
 
-					if( 0 == n )
-					{
+					if( 0 == n )	{
 						CreateTable( nDataID, nRecordWidth, 32 );
 					}
 
@@ -215,7 +203,7 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 					pTable->InsertRecord( pszRecord, nRecordWidth, nSerialNo );
 				}
 
-				s_nLastPos = nOffset+1;
+				s_nLastPos = nOffset + 1;
 			}
 		}
 
@@ -238,57 +226,50 @@ bool MemDatabase::SaveToDisk( const char* pszDataFile )
 	try
 	{
 		CriticalLock				lock( m_oCSLock );
-		unsigned int				nTableCount = GetTableCount();
 
-		if( NULL == m_pQueryBuffer )
-		{
+		if( NULL == m_pQueryBuffer )	{
 			::printf( "MemDatabase::SaveToDisk() : invalid query buffer pointer(NULL) \n" );
 			return false;
 		}
 
-		for( unsigned int n = 0; n < nTableCount; n++ )
+		for( unsigned int n = 0; n < GetTableCount(); n++ )
 		{
 			unsigned __int64		nSerialNo = 0;
 			DynamicTable*			pTable = (DynamicTable*)(*this)[n];
 			char					pszTmpFileName[64] = { 0 };
 			int						nDataSize = pTable->CopyToBuffer( m_pQueryBuffer, MAX_QUERY_BUFFER_LEN, nSerialNo );
 
-			if( nDataSize > 0 && NULL != pTable )
-			{
-				::sprintf( pszTmpFileName, "%d.dump", pTable->GetMeta().m_nBindID );
-				MemoDumper<char>	fileDump( false, JoinPath( pszDataFile, pszTmpFileName ).c_str(), DateTime::Now().DateToLong() );
-				unsigned int		nRecordWidth = pTable->GetMeta().m_nRecordWidth;
-
-				if( fileDump.Write( (char*)&nRecordWidth, sizeof(nRecordWidth) ) < 0 )
-				{
-					::printf( "MemDatabase::SaveToDisk() : failed 2 dump table data (a) \n" );
-					return false;
-				}
-
-				if( fileDump.Write( m_pQueryBuffer, nDataSize ) < 0 )
-				{
-					::printf( "MemDatabase::SaveToDisk() : failed 2 dump table data (b) \n" );
-					return false;
-				}
-			}
-			else
+			if( nDataSize <= 0 && NULL == pTable )
 			{
 				::printf( "MemDatabase::SaveToDisk() : failed 2 copy table data, errorcode=%d \n", nDataSize );
 				return false;
 			}
+
+			::sprintf( pszTmpFileName, "%d.dump", pTable->GetMeta().m_nBindID );
+			MemoDumper<char>	fileDump( false, JoinPath( pszDataFile, pszTmpFileName ).c_str(), DateTime::Now().DateToLong() );
+			unsigned int		nRecordWidth = pTable->GetMeta().m_nRecordWidth;
+
+			if( fileDump.Write( (char*)&nRecordWidth, sizeof(nRecordWidth) ) < 0 )
+			{
+				::printf( "MemDatabase::SaveToDisk() : failed 2 dump table data (a) \n" );
+				return false;
+			}
+
+			if( fileDump.Write( m_pQueryBuffer, nDataSize ) < 0 )
+			{
+				::printf( "MemDatabase::SaveToDisk() : failed 2 dump table data (b) \n" );
+				return false;
+			}
 		}
 
+		MemoDumper<char>		fileMeta( false, JoinPath( pszDataFile, "meta.dump" ).c_str(), DateTime::Now().DateToLong() );
+
+		for( unsigned int i = 0; i < GetTableCount(); i++ )
 		{
-			MemoDumper<char>		fileMeta( false, JoinPath( pszDataFile, "meta.dump" ).c_str(), DateTime::Now().DateToLong() );
+			char				pszDataID[64] = { 0 };
 
-			for( unsigned int i = 0; i < nTableCount; i++ )
-			{
-				char				pszDataID[64] = { 0 };
-				DynamicTable*		pTable = (DynamicTable*)(*this)[i];
-
-				::sprintf( pszDataID, "%d,", pTable->GetMeta().m_nBindID );
-				fileMeta.Write( pszDataID, ::strlen(pszDataID) );
-			}
+			::sprintf( pszDataID, "%d,", ((DynamicTable*)(*this)[i])->GetMeta().m_nBindID );
+			fileMeta.Write( pszDataID, ::strlen(pszDataID) );
 		}
 
 		return true;
