@@ -95,6 +95,11 @@ void DynamicTable::Release()
 	::memset( m_pRecordsBuffer, 0, m_nMaxBufferSize );
 }
 
+DynamicTable::TableMeta DynamicTable::GetMeta()
+{
+	return m_oTableMeta;
+}
+
 bool DynamicTable::EnlargeBuffer( unsigned long nAllocItemNum )
 {
 	unsigned int	nNewBufferSize = m_oTableMeta.m_nRecordWidth * nAllocItemNum;

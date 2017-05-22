@@ -111,6 +111,11 @@ public:
 	 */
 	void									Release();
 
+	/**
+	 * @brief								取得数据表元信息
+	 */
+	TableMeta								GetMeta();
+
 public:
 	/**
 	 * @brief								追加新数据

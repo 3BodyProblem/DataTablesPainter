@@ -68,8 +68,10 @@ public:///< Method Of Interface
 
 	/**
 	 * @brief					清理所有数据表
+	 * @return					==0					成功
+								!=					出错
 	 */
-	void						DeleteTables();
+	int							DeleteTables();
 
 	/**
 	 * @brief					从硬盘恢复所有数据
@@ -104,6 +106,8 @@ private:
 	TPostionHash				m_HashTableOfPostion;						///< 哈稀表,msgid所在的数据选择类型
 	DynamicTable				m_arrayQuotationTables[MAX_TABBLE_NO];		///< 行情动态表集合
 	unsigned int				m_nUsedTableNum;							///< 已经使用珠数据表数量
+private:
+	char*						m_pQueryBuffer;								///< 数据查询缓存
 };
 
 

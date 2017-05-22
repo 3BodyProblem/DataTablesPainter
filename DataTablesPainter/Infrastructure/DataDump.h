@@ -5,9 +5,7 @@
 #pragma warning(disable:4786)
 #include <string>
 #include <fstream>
-#include "ThostFtdcMdApi.h"
-#include "../Configuration.h"
-#include "../Infrastructure/DateTime.h"
+#include "DateTime.h"
 
 
 /**
@@ -45,7 +43,7 @@ public:
 	 * @brief				构造
 	 * @detail				打开或创建一个文件
 	 * @param[in]			pszFileFolder		文件目录
-	 * @param[in]			bIsRead				true:为加载一个文件; true:为写一个文件
+	 * @param[in]			bIsRead				true:为加载一个文件; false:为写一个文件
 	 * @param[in]			nTradingDay			行情交易日期
 	 * @param[in]			bAppendModel		追加模式(默认为“否”)
 	 */
@@ -255,147 +253,7 @@ int MemoDumper<TYPE>::Write( const char* pData, unsigned int nDataLen )
 }
 
 
-///< --------------------------------------------------------------
 
-
-namespace QuotationSync
-{
-
-/**
- * @class			StaticSaver
- * @brief			静态数据落盘文件保存
- */
-class StaticSaver : public MemoDumper<CThostFtdcInstrumentField>
-{
-public:
-	bool			Init( const char* pszFilePath, unsigned int nTradingDay );
-	void			Release();
-};
-
-
-/**
- * @class			StaticLoader
- * @brief			静态数据落盘文件加载
- */
-class StaticLoader : public MemoDumper<CThostFtdcInstrumentField>
-{
-public:
-	bool			Init( const char* pszFilePath );
-	void			Release();
-};
-
-
-/**
- * @class			SnapSaver
- * @brief			静态数据落盘文件保存
- */
-class SnapSaver : public MemoDumper<CThostFtdcDepthMarketDataField>
-{
-public:
-	bool			Init( const char* pszFilePath, unsigned int nTradingDay );
-	void			Release();
-};
-
-
-/**
- * @class			SnapLoader
- * @brief			静态数据落盘文件加载
- */
-class SnapLoader : public MemoDumper<CThostFtdcDepthMarketDataField>
-{
-public:
-	bool			Init( const char* pszFilePath );
-	void			Release();
-};
-
-
-/**
- * @class			CTPSyncSaver
- * @brief			ctp行情数据落盘文件管理
- */
-class CTPSyncSaver
-{
-private:
-	CTPSyncSaver();
-public:
-	static CTPSyncSaver&	GetHandle();
-
-	/**
-	 * @brief				打开文件
-	 * @param[in]			eHandleType		文件类型标识
-	 */
-	bool					Init( const char* pszFilePath, unsigned int nTradingDay, bool bIsStaticData );
-
-	/**
-	 * @brief				关闭文件
-	 * @param[in]			eHandleType		文件类型标识
-	 */
-	void					Release( bool bIsStaticData );
-
-	/**
-	 * @brief				静态数据落盘
-	 * @param[in]			eHandleType		文件类型标识
-	 * @param[in]			refData			需要保存的数据引用
-	 */
-	int						SaveStaticData( const CThostFtdcInstrumentField& refData );
-
-	/**
-	 * @brief				行情数据落盘
-	 * @param[in]			eHandleType		文件类型标识
-	 * @param[in]			refData			需要保存的数据引用
-	 */
-	int						SaveSnapData( const CThostFtdcDepthMarketDataField& refData );
-
-private:
-	StaticSaver				m_oStaticSaver;
-	SnapSaver				m_oSnapSaver;
-};
-
-
-/**
- * @class			CTPSyncLoader
- * @brief			ctp行情数据落盘文件管理
- */
-class CTPSyncLoader
-{
-private:
-	CTPSyncLoader();
-public:
-	static CTPSyncLoader&	GetHandle();
-
-	/**
-	 * @brief				打开文件
-	 * @param[in]			eHandleType		文件类型标识
-	 */
-	bool					Init( const char* pszFilePath, bool bIsStaticData );
-
-	/**
-	 * @brief				关闭文件
-	 * @param[in]			eHandleType		文件类型标识
-	 */
-	void					Release( bool bIsStaticData );
-
-	/**
-	 * @brief				静态数据落盘
-	 * @param[in]			eHandleType		文件类型标识
-	 * @param[in]			refData			需要保存的数据引用
-	 */
-	int						GetStaticData( CThostFtdcInstrumentField& refData );
-
-	/**
-	 * @brief				行情数据落盘
-	 * @param[in]			eHandleType		文件类型标识
-	 * @param[in]			refData			需要保存的数据引用
-	 */
-	int						GetSnapData( CThostFtdcDepthMarketDataField& refData );
-
-private:
-	StaticLoader			m_oStaticLoader;
-	SnapLoader				m_oSnapLoader;
-};
-
-
-}
 
 
 
