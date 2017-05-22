@@ -221,9 +221,9 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 			return -4;
 		}
 
-		if( nDataOffsetIndex >= (m_nMaxBufferSize-nDataOffsetIndex) )
+		if( nDataOffsetIndex > (m_nMaxBufferSize-nRecordLen) )
 		{
-			::printf( "MemDatabase::InsertRecord() : subscript out of range of memo-tables list\n" );
+			::printf( "DynamicTable::InsertRecord() : subscript out of range of memo-tables list\n" );
 			return -5;
 		}
 
@@ -278,7 +278,7 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned
 			return 0;
 		}
 
-		if( nDataOffsetIndex >= (m_nMaxBufferSize-nDataOffsetIndex) )
+		if( nDataOffsetIndex > (m_nMaxBufferSize-nRecordLen) )
 		{
 			::printf( "MemDatabase::UpdateRecord() : subscript out of range of memo-tables list\n" );
 			return -3;
