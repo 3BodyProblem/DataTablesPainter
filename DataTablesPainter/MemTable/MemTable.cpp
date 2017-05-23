@@ -319,10 +319,10 @@ int DynamicTable::CopyToBuffer( char* pBuffer, unsigned int nBufferSize, unsigne
 			return -1;
 		}
 
-		nDbSerialNo = GlobalSequenceNo::GetObj().GenerateSeq();
 		if( m_nCurrentDataSize > 0 && 0 == nDbSerialNo )
 		{
 			::memcpy( pBuffer, m_pRecordsBuffer, m_nCurrentDataSize );
+			nDbSerialNo = GlobalSequenceNo::GetObj().GetSeqNo();
 			return m_nCurrentDataSize;
 		}
 		else
@@ -342,6 +342,8 @@ int DynamicTable::CopyToBuffer( char* pBuffer, unsigned int nBufferSize, unsigne
 					nRecordsSize += m_oTableMeta.m_nRecordWidth;
 				}
 			}
+
+			nDbSerialNo = GlobalSequenceNo::GetObj().GetSeqNo();
 
 			return nRecordsSize;
 		}
