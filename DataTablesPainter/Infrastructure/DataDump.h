@@ -230,7 +230,7 @@ int MemoDumper<TYPE>::Read( char* pData, unsigned int nDataLen )
 
 	m_fInput.read( pData, nDataLen );
 
-	return 1;
+	return m_fInput.gcount();
 }
 
 template<class TYPE>

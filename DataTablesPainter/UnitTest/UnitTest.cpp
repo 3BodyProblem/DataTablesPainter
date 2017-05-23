@@ -448,6 +448,13 @@ TEST_F( TestCreateNameTable1000_Normal, InsertUpdateTestOfNormalNameTable )
 	TestUpdateRecord();TestSelectRecord();
 }
 
+///< 对空数据表作记录空更新操作测试
+TEST_F( TestCreateNameTable1000_Normal, DumpAndLoad )
+{
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./data/" ), true );
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./data/" ), true );
+}
+
 ///< 创建一堆数据库对象
 TEST_F( TestAnyMessage_ID_X, CreateBundleOfDatabasePointer )
 {
@@ -550,12 +557,6 @@ TEST_F( TestAnyMessage_ID_X, UpdateBeforeInsert )
 }
 
 
-///< 对空数据表作记录空更新操作测试
-TEST_F( TestAnyMessage_ID_X, DumpAndLoad )
-{
-	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./data/" ), true );
-	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./data/" ), true );
-}
 
 
 ///< ---------------------- 单元测试初始化类定义 -------------------------

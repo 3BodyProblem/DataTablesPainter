@@ -191,16 +191,29 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 
 				for( int n = 0; true; n++ )
 				{
-					if( fileDump.Read( pszRecord, nRecordWidth ) < 0 )	{
+					if( fileDump.Read( pszRecord, nRecordWidth ) <= 0 )	{
 						break;
 					}
 
 					if( 0 == n )	{
-						CreateTable( nDataID, nRecordWidth, 32 );
+						if( false == CreateTable( nDataID, nRecordWidth, 32 ) )
+						{
+							::printf( "MemDatabase::LoadFromDisk() : failed 2 create table, table id = %d\n", nDataID );
+							return false;
+						}
 					}
 
-					pTable = QueryTable( nDataID );
-					pTable->InsertRecord( pszRecord, nRecordWidth, nSerialNo );
+					if( NULL == (pTable = QueryTable( nDataID )) )
+					{
+						::printf( "MemDatabase::LoadFromDisk() : failed 2 query table, table id = %d\n", nDataID );
+						return false;
+					}
+
+					if( 0 > pTable->InsertRecord( pszRecord, nRecordWidth, nSerialNo ) )
+					{
+						::printf( "MemDatabase::LoadFromDisk() : failed 2 insert into table, table id = %d\n", nDataID );
+						return false;
+					}
 				}
 
 				s_nLastPos = nOffset + 1;
