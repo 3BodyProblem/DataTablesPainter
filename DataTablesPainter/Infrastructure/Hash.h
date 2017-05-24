@@ -20,13 +20,15 @@ class CollisionHash
 	struct T_ListNode
 	{
 	public:
-		T_ListNode() : nDataPos( -1 ), pNextNode( NULL ), nHashKey( 0 ) {};
+		T_ListNode() : nDataPos( -1 ), pPrevNode(NULL), pNextNode( NULL ), nHashKey( 0 ) {};
 		bool			IsNull()	{	return nDataPos < 0;	}		///< 节点是否有有效值
 		bool			HasNext()	{	return pNextNode != NULL;	}	///< 节点是否有下一个值
-		void			Clear()		{	nDataPos = -1; pNextNode = NULL; nHashKey = 0;	}
+		bool			IsFirst()	{	return pPrevNode == pNextNode && NULL != pNextNode;	}
+		void			Clear()		{	nDataPos = -1; pNextNode = NULL; pPrevNode = NULL, nHashKey = 0;	}
 	public:
 		T_KEY_TYPE		nHashKey;									///< 健值保存
 		int				nDataPos;									///< 数据所在的索引位置
+		void*			pPrevNode;									///< 具有相同key的上一个值的索引位置
 		void*			pNextNode;									///< 具有相同key的下一个值的索引位置
 	};
 public:
@@ -50,12 +52,21 @@ public:
 	/**
 	 * @brief			设置键值对
 	 * @param[in]		nKey		键值
-	 * @param[in\		oData		数值
+	 * @param[in]		oData		数值
 	 * @return			==1			设置成功
 						==0			已经存在，不需要新建
 						<0			失败
 	 */
 	int					NewKey( T_KEY_TYPE nKey, T_VALUE_TYPE oData );
+
+	/**
+	 * @brief			删除键值对
+	 * @param[in]		nKey		键值
+	 * @return			==1			设置成功
+						==0			已经不存在，不需要删除
+						<0			失败
+	 */
+	int					DeleteKey( T_KEY_TYPE nKey );
 
 	/**
 	 * @brief			获取元素的总数量
@@ -101,6 +112,7 @@ void CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::C
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
 int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::NewKey( T_KEY_TYPE nKey, T_VALUE_TYPE oData )
 {
+	struct T_ListNode*		pLastNode = NULL;
 	T_KEY_TYPE				nKeyPos = nKey % MAX_BUCKET_SIZE;
 	struct T_ListNode*		pNode = m_BucketOfHash + nKeyPos;
 
@@ -114,6 +126,7 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Ne
 		m_ArrayOfData[m_nUsedNumOfArrayData] = oData;
 		pNode->nHashKey = nKey;
 		pNode->nDataPos = m_nUsedNumOfArrayData++;
+		pNode->pPrevNode = pNode;
 		return 1;
 	}
 
@@ -131,17 +144,63 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Ne
 			m_ArrayOfData[m_nUsedNumOfArrayData] = oData;
 			pNewNodeOfCollision->nHashKey = nKey;
 			pNewNodeOfCollision->nDataPos = m_nUsedNumOfArrayData++;
+			pNode->pPrevNode = pLastNode;
 			pNode->pNextNode = pNewNodeOfCollision;
 
 			return 1;
 		}
 		else
 		{
+			pLastNode = pNode;
 			pNode = (struct T_ListNode*)(pNode->pNextNode);
 		}
 	}
 
 	return -1;
+}
+
+template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
+int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::DeleteKey( T_KEY_TYPE nKey )
+{
+	T_KEY_TYPE				nKeyPos = nKey % MAX_BUCKET_SIZE;
+	struct T_ListNode*		pNode = m_BucketOfHash + nKeyPos;
+
+	while( false == pNode->IsNull() )
+	{
+		if( nKey == pNode->nHashKey )					///< 找到节点位置
+		{
+//T_ListNode		m_BucketOfHash[MAX_BUCKET_SIZE];			///< 哈稀桶
+//T_ListNode		m_CollisionBucket[MAX_DATATABLE_NUM];		///< 哈稀碰撞桶
+//T_VALUE_TYPE		m_ArrayOfData[MAX_DATATABLE_NUM];			///< 数据缓存表
+//unsigned int		m_nUsedNumOfCollisionBucket;				///< 已经使用的节点数量(碰撞桶)
+//unsigned int		m_nUsedNumOfArrayData;						///< 已经使用的数据缓存节点数据
+///<return &(m_ArrayOfData[pNode->nDataPos]);
+			if( pNode >= (m_BucketOfHash+0) && pNode < (m_BucketOfHash+MAX_BUCKET_SIZE) )				///< 节点在哈希桶内(头节点)
+			{
+
+			}
+			else if( pNode >= (m_CollisionBucket+0) && pNode < (m_CollisionBucket+MAX_DATATABLE_NUM) )	///< 节点在碰撞桶内(非头节点)
+			{
+				((struct T_ListNode*)(pNode->pPrevNode))->pNextNode = pNode->pNextNode;
+				((struct T_ListNode*)(pNode->pNextNode))->pPrevNode = pNode->pPrevNode;
+
+			}
+			else
+			{
+				return -1;
+			}
+		}
+		else if( true == pNode->HasNext() )
+		{
+			pNode = (struct T_ListNode*)(pNode->pNextNode);
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return 0;
 }
 
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>

@@ -181,6 +181,54 @@ RecordBlock DynamicTable::SelectRecord( char* pKeyStr, unsigned int nKeyLen )
 	return RecordBlock( NULL, 0 );
 }
 
+int DynamicTable::DeleteRecord( char* pKeyStr, unsigned int nKeyLen )
+{
+	try
+	{
+		if( NULL == pKeyStr || nKeyLen <= 0 )
+		{
+			::printf( "DynamicTable::DeleteRecord() : invalid arguments\n" );
+			return -1;
+		}
+
+		DyncRecord				objRecord( pKeyStr, nKeyLen );
+		__int64					nDataSeqKey = objRecord.GetMainKey();
+		CriticalLock			lock( m_oCSLock );
+		T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
+
+		if( NULL == pRecordPostion )
+		{
+			return 0;
+		}
+
+		unsigned int			nRecordOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
+		if( nRecordOffset >= (m_nMaxBufferSize-nRecordOffset) )
+		{
+			return -2;
+		}
+
+		unsigned int			nNextRecordPos = nRecordOffset + m_oTableMeta.m_nRecordWidth;
+		if( NULL != ::memmove( m_pRecordsBuffer+nRecordOffset, m_pRecordsBuffer+nNextRecordPos, m_nCurrentDataSize - nNextRecordPos ) )
+		{
+			m_nCurrentDataSize -= m_oTableMeta.m_nRecordWidth;
+			m_oHashTableOfIndex.DeleteKey( nDataSeqKey );
+			return 1;
+		}
+
+		return -3;
+	}
+	catch( std::exception& err )
+	{
+		::printf( "DynamicTable::DeleteRecord() : exception : %s\n", err.what() );
+	}
+	catch( ... )
+	{
+		::printf( "DynamicTable::DeleteRecord() : unknow exception\n" );
+	}
+
+	return 0;
+}
+
 int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned __int64& nDbSerialNo )
 {
 	try
@@ -199,8 +247,8 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 			}
 		}
 
-		int						nInsertAffect = m_oHashTableOfIndex.NewKey( nDataSeqKey
-											, T_RECORD_POS( m_nCurrentDataSize/m_oTableMeta.m_nRecordWidth, (nDbSerialNo=GlobalSequenceNo::GetObj().GenerateSeq()) ) );
+		int		nInsertAffect = m_oHashTableOfIndex.NewKey( nDataSeqKey
+				, T_RECORD_POS( m_nCurrentDataSize/m_oTableMeta.m_nRecordWidth, (nDbSerialNo=GlobalSequenceNo::GetObj().GenerateSeq()) ) );
 		if( nInsertAffect < 0 )	///< 新增记录:	位置为, 第 0 个索引位置
 		{	///< 记录不存在，新增成功的情况
 			::printf( "DynamicTable::InsertRecord() : failed 2 insert data 2 hash table.\n" );

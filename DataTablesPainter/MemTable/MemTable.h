@@ -137,7 +137,7 @@ public:
 											=0						记录已经存在，不需要增加
 											<0						失败
 	 */
-	virtual int								UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned __int64& nDbSerialNo ); 
+	int										UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned __int64& nDbSerialNo ); 
 
 	/**
 	 * @brief								索引出记录对象
@@ -146,6 +146,16 @@ public:
 	 * @return								返回记录对象
 	 */
 	RecordBlock								SelectRecord( char* pKeyStr, unsigned int nKeyLen );
+
+	/**
+	 * @brief								删除某条记录
+	 * @param[in]							pKeyStr					主键地址
+	 * @param[in]							nKeyLen					主键长度
+	 * @return								>0						返回被操作到的记录数
+											==0						未有记录被删除
+											<0						删除时出现错误
+	 */
+	int										DeleteRecord( char* pKeyStr, unsigned int nKeyLen );
 
 	/**
 	 * @brief								将数据表的数据原样copy到缓存
