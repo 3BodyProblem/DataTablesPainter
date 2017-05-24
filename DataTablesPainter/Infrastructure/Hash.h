@@ -78,6 +78,18 @@ public:
 	 */
 	void				Clear();
 
+protected:
+	/**
+	 * @brief			将一个节点从列表中移除
+	 * @detail			打断链表/删除节点/重接节点前后两节点 + 将打断链表的后段前移 + 根据打断处地址要标准重新计算各节点的前后指针的偏移
+	 * @param[in]		pNode2Erase				要移除节点的地址
+	 * @param[in]		nErasePos				要移除节点的索引
+	 * @param[in]		pArrayOfNode			节点列表的首地址
+	 * @param[in,out]	nNodeTotalNumber		有效节点的个数
+	 * return			true					操作成功
+	 */
+	bool				Erase1NodeFromList( struct T_ListNode* pNode2Erase, unsigned int nErasePos, struct T_ListNode* pArrayOfNode, unsigned int& nNodeTotalNumber );
+
 private:
 	T_ListNode			m_BucketOfHash[MAX_BUCKET_SIZE];			///< 哈稀桶
 	T_ListNode			m_CollisionBucket[MAX_DATATABLE_NUM];		///< 哈稀碰撞桶
@@ -160,6 +172,45 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Ne
 }
 
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
+bool CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Erase1NodeFromList( struct T_ListNode* pNode2Erase
+																									, unsigned int nErasePos
+																									, struct T_ListNode* pArrayOfNode
+																									, unsigned int& nNodeTotalNumber )
+{
+	struct T_ListNode*		pFirstCopyNode = pNode2Erase + 1;
+
+	///< 先从链表中移除节点
+	((struct T_ListNode*)(pNode2Erase->pPrevNode))->pNextNode = pNode2Erase->pNextNode;
+	((struct T_ListNode*)(pNode2Erase->pNextNode))->pPrevNode = pNode2Erase->pPrevNode;
+
+	///< 移掉中间被移除节点的被占空间（通过内存移动+指针重新计算偏移）
+	nNodeTotalNumber -= 1;
+	::memmove( pNode2Erase, pFirstCopyNode, nNodeTotalNumber - nErasePos );
+
+	///< 在高于被移除节点地址的元素指针都进行前移sizeof(struct T_ListNode)
+	for( unsigned int n = 0; n < nNodeTotalNumber; n++ )
+	{
+		struct T_ListNode&	refNode = pArrayOfNode[n];
+
+		if( refNode.pPrevNode > pArrayOfNode && refNode.pPrevNode < (pArrayOfNode + nNodeTotalNumber + 1) )
+		{
+			if( refNode.pPrevNode > pNode2Erase )
+			{
+				refNode.pPrevNode = ((char*)(refNode.pPrevNode)) + sizeof(struct T_ListNode);
+			}
+
+			if( refNode.pNextNode > pNode2Erase )
+			{
+				refNode.pNextNode = ((char*)(refNode.pNextNode)) + sizeof(struct T_ListNode);
+			}
+		}
+
+	}
+
+	return true;
+}
+
+template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
 int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::DeleteKey( T_KEY_TYPE nKey )
 {
 	T_KEY_TYPE				nKeyPos = nKey % MAX_BUCKET_SIZE;
@@ -169,21 +220,25 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::De
 	{
 		if( nKey == pNode->nHashKey )					///< 找到节点位置
 		{
-//T_ListNode		m_BucketOfHash[MAX_BUCKET_SIZE];			///< 哈稀桶
-//T_ListNode		m_CollisionBucket[MAX_DATATABLE_NUM];		///< 哈稀碰撞桶
-//T_VALUE_TYPE		m_ArrayOfData[MAX_DATATABLE_NUM];			///< 数据缓存表
-//unsigned int		m_nUsedNumOfCollisionBucket;				///< 已经使用的节点数量(碰撞桶)
-//unsigned int		m_nUsedNumOfArrayData;						///< 已经使用的数据缓存节点数据
-///<return &(m_ArrayOfData[pNode->nDataPos]);
 			if( pNode >= (m_BucketOfHash+0) && pNode < (m_BucketOfHash+MAX_BUCKET_SIZE) )				///< 节点在哈希桶内(头节点)
 			{
+				if( NULL == pNode->pNextNode )
+				{
+					pNode->Clear();
+				}
+				else
+				{
+					struct T_ListNode*	pNodeInCollisionBucket = (struct T_ListNode*)(pNode->pNextNode);
+					::memcpy( pNode, pNodeInCollisionBucket, sizeof(struct T_ListNode) );
+					pNode->pPrevNode = pNode;
+					((struct T_ListNode*)(pNode->pNextNode))->pPrevNode = pNode;
 
+					Erase1NodeFromList( pNodeInCollisionBucket, (pNodeInCollisionBucket-m_CollisionBucket)/sizeof(struct T_ListNode), m_CollisionBucket, m_nUsedNumOfCollisionBucket );
+				}
 			}
 			else if( pNode >= (m_CollisionBucket+0) && pNode < (m_CollisionBucket+MAX_DATATABLE_NUM) )	///< 节点在碰撞桶内(非头节点)
 			{
-				((struct T_ListNode*)(pNode->pPrevNode))->pNextNode = pNode->pNextNode;
-				((struct T_ListNode*)(pNode->pNextNode))->pPrevNode = pNode->pPrevNode;
-
+				Erase1NodeFromList( pNode, nKeyPos, m_CollisionBucket, m_nUsedNumOfCollisionBucket );
 			}
 			else
 			{
