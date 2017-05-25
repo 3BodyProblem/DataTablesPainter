@@ -55,7 +55,7 @@ public:
 			Number3 = nNum3;
 		}
 
-		static unsigned int GetID() {	return 1128;	}
+		static unsigned int GetID() {	return 1024+128;	}
 
 		char				SecurityID[32];				///< 商品代码
 		char				SecurityName[64];			///< 商品名称
@@ -78,7 +78,7 @@ public:
 			Amount = dAmount;
 		}
 
-		static unsigned int GetID() {	return 2128;	}
+		static unsigned int GetID() {	return 2*1024+128;	}
 
 		char				SecurityID[32];				///< 商品代码
 		unsigned int		High;
@@ -90,16 +90,18 @@ public:
 
 protected:
 	virtual void										TestLocateMarketInfo( bool bIsExist = true );
-	virtual void										TestLocateNameTable( bool bIsExist = true );
-	virtual void										TestLocateSnapTable( bool bIsExist = true );
 	virtual void										TestInsertMarketInfo( unsigned int nSeed, bool bIsExist = false );
-	virtual void										TestInsertNameTable( unsigned int nSeed, bool bIsExist = false );
-	virtual void										TestInsertSnapTable( unsigned int nSeed, bool bIsExist = false );
 	virtual void										TestDeleteMarketInfo( unsigned int nSeed );
-	virtual void										TestDeleteNameTable( unsigned int nSeed );
-	virtual void										TestDeleteSnapTable( unsigned int nSeed );
 	virtual void										TestSelectMarketInfo( unsigned int nSeed, bool bIsExist );
+
+	virtual void										TestLocateNameTable( bool bIsExist = true );
+	virtual void										TestInsertNameTable( unsigned int nSeed, bool bIsExist = false );
+	virtual void										TestDeleteNameTable( unsigned int nSeed );
 	virtual void										TestSelectNameTable( unsigned int nSeed, bool bIsExist );
+
+	virtual void										TestLocateSnapTable( bool bIsExist = true );
+	virtual void										TestInsertSnapTable( unsigned int nSeed, bool bIsExist = false );
+	virtual void										TestDeleteSnapTable( unsigned int nSeed );
 	virtual void										TestSelectSnapTable( unsigned int nSeed, bool bIsExist );
 
 protected:

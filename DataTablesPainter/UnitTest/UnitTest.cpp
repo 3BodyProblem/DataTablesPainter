@@ -49,6 +49,13 @@ void TestTableOperation::SetUp()
 		m_vctNameTable.push_back( T_Message_NameTable( "IH2075-C-3000", "商品名称3", 2, 5, 3, 555 ) );
 		m_vctNameTable.push_back( T_Message_NameTable( "SR1001930", "中文商品名称4", 3, 3, 0, 100 ) );
 		m_vctNameTable.push_back( T_Message_NameTable( "SR1231930", "中文商品名称6", 6, 321, 2, 9 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "aR1441930", "a某种商品名称", 10, 12, 1, 60 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "b00000", "b上海市场", 12, 0, 1, 2 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "c2075-C-3000", "c中文商品名称", 8, 6, 1, 7 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "d2075-P-9000", "d某种商品名称", 1, 8, 8, 2 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "e2075-C-3000", "e商品名称3", 2, 5, 3, 555 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "f1001930", "f中文商品名称4", 3, 3, 0, 100 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "g1231930", "g中文商品名称6", 6, 321, 2, 9 ) );
 	}
 
 	if( true == m_vctSnapTable.empty() )
@@ -60,9 +67,20 @@ void TestTableOperation::SetUp()
 		m_vctSnapTable.push_back( T_Message_SnapTable( "IH2075-C-3000", 50000, 52000, 49000, 523456000.102, 63415435 ) );
 		m_vctSnapTable.push_back( T_Message_SnapTable( "SR1001930", 60000, 62000, 59000, 623456000.102, 73415435 ) );
 		m_vctSnapTable.push_back( T_Message_SnapTable( "SR1231930", 70000, 72000, 69000, 723456000.102, 83415435 ) );
+
+		for( unsigned int i = 0; i < 1024*2; i++ )
+		{
+			char			pszCode[32] = { 0 };
+			unsigned int	nNow = (i+1) * 1024;
+			unsigned int	nHigh = nNow + 100 * i;
+			unsigned int	nLow = nNow - 100 * i;
+
+			::sprintf( pszCode, "UFO%u-AP-100", i );
+			m_vctSnapTable.push_back( T_Message_SnapTable( pszCode, nNow, nHigh, nLow, nNow*123342.102, nNow*1024 ) );
+		}
 	}
 
-	m_nMaxLoopNum = m_vctNameTable.size() + 10;
+	m_nMaxLoopNum = m_vctSnapTable.size();
 }
 
 void TestTableOperation::TearDown()
@@ -548,7 +566,7 @@ TEST_F( TestTableOperation, DumpEmptyTablesAndLoad )
 	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), false );
 	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), false );
 
-	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	for( int n = 0; n < 2; n++ )
 	{
 		TestLocateMarketInfo( false );
 		TestLocateNameTable( false );
@@ -556,7 +574,7 @@ TEST_F( TestTableOperation, DumpEmptyTablesAndLoad )
 	}
 }
 
-///< 测试单条记录的插入测试
+///< 测试单条记录的插入和删除测试
 TEST_F( TestTableOperation, InsertOneRecordAndDelete )
 {
 	TestLocateMarketInfo();TestInsertMarketInfo( 0 );TestSelectMarketInfo( 0, true );
@@ -573,7 +591,7 @@ TEST_F( TestTableOperation, InsertOneRecordAndDelete )
 }
 
 ///< 测试全部记录的插入测试
-TEST_F( TestTableOperation, InsertAllRecordAndDelete )
+TEST_F( TestTableOperation, InsertAllRecord )
 {
 	unsigned int	nMkListSize = m_vctMarketInfo.size();
 	unsigned int	nNameTableSize = m_vctNameTable.size();
