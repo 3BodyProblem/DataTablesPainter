@@ -117,8 +117,6 @@ template<class TYPE>
 MemoDumper<TYPE>::MemoDumper( bool bIsRead, const char* pszFileFolder, unsigned int nTradingDay, bool bAppendModel )
  : m_bIsRead( bIsRead ), m_nTradingDay( 0 ), m_bAppendModel( bAppendModel )
 {
-	::printf( "MemoDumper::MemoDumper() : File Path = %s, read flag = %d, trading day = %u\n", pszFileFolder, bIsRead, nTradingDay );
-
 	if( NULL != pszFileFolder )
 	{
 		Open( bIsRead, pszFileFolder, nTradingDay );
@@ -130,8 +128,6 @@ void MemoDumper<TYPE>::Close()
 {
 	if( true == IsOpen() )
 	{
-		::printf( "%s", "MemoDumper::Close() : File Closing..\n" );
-
 		if( true == m_bIsRead )
 		{
 			m_fInput.close();
@@ -142,8 +138,6 @@ void MemoDumper<TYPE>::Close()
 			::MoveFileEx( m_pszTmpFilePath, m_pszTargetFile, MOVEFILE_REPLACE_EXISTING );
 		}
 	}
-
-	::printf( "%s", "MemoDumper::Close() : File Closed.\n" );
 }
 
 template<class TYPE>

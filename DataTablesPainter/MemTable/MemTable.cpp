@@ -100,6 +100,11 @@ DynamicTable::TableMeta DynamicTable::GetMeta()
 	return m_oTableMeta;
 }
 
+unsigned int DynamicTable::GetRecordCount()
+{
+	return m_nCurrentDataSize/m_oTableMeta.m_nRecordWidth;
+}
+
 bool DynamicTable::EnlargeBuffer( unsigned long nAllocItemNum )
 {
 	unsigned int	nNewBufferSize = m_oTableMeta.m_nRecordWidth * nAllocItemNum;
@@ -181,7 +186,7 @@ RecordBlock DynamicTable::SelectRecord( char* pKeyStr, unsigned int nKeyLen )
 	return RecordBlock( NULL, 0 );
 }
 
-int DynamicTable::DeleteRecord( char* pKeyStr, unsigned int nKeyLen )
+int DynamicTable::DeleteRecord( char* pKeyStr, unsigned int nKeyLen, unsigned __int64& nDbSerialNo )
 {
 	try
 	{
@@ -196,6 +201,7 @@ int DynamicTable::DeleteRecord( char* pKeyStr, unsigned int nKeyLen )
 		CriticalLock			lock( m_oCSLock );
 		T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
 
+		nDbSerialNo = GlobalSequenceNo::GetObj().GetSeqNo();
 		if( NULL == pRecordPostion )
 		{
 			return 0;
@@ -211,11 +217,16 @@ int DynamicTable::DeleteRecord( char* pKeyStr, unsigned int nKeyLen )
 		if( NULL != ::memmove( m_pRecordsBuffer+nRecordOffset, m_pRecordsBuffer+nNextRecordPos, m_nCurrentDataSize - nNextRecordPos ) )
 		{
 			m_nCurrentDataSize -= m_oTableMeta.m_nRecordWidth;
-			m_oHashTableOfIndex.DeleteKey( nDataSeqKey );
+			if( 0 >= m_oHashTableOfIndex.DeleteKey( nDataSeqKey ) )
+			{
+				::printf( "DynamicTable::DeleteRecord() : failed 2 delete hash key\n" );
+				return -3;
+			}
+
 			return 1;
 		}
 
-		return -3;
+		return -4;
 	}
 	catch( std::exception& err )
 	{

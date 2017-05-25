@@ -4,135 +4,242 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <time.h>
+#include "../MemTable/MemTable.h"
 #include "../DataTablesPainter.h"
 
 
 ///< --------------------- 单元测试类定义 --------------------------------
 
 
-I_Table* TestCreateNameTable1000_ZeroMemo::s_pTablePtr = NULL;
-MemoryCollection::DynamicTable::TableMeta TestCreateNameTable1000_ZeroMemo::s_oTableMeta( 0, 0, 0 );
-TestCreateNameTable1000_ZeroMemo::T_Message1000_NameTable TestCreateNameTable1000_ZeroMemo::s_sMsg1000NameTable = { 0 };
-
-void TestCreateNameTable1000_ZeroMemo::SetUpTestCase()
-{
-	///< 静态域：初始化数据表指针
-	s_pTablePtr = NULL;
-	///< 静态域：初始化数据表元信息
-	s_oTableMeta = MemoryCollection::DynamicTable::TableMeta( 1000, sizeof(T_Message1000_NameTable), sizeof(s_sMsg1000NameTable.SecurityID) );
-	///< 静态域：码表清零
-	::memset( &s_sMsg1000NameTable, 0, sizeof(s_sMsg1000NameTable) );
-}
-
-void TestCreateNameTable1000_ZeroMemo::TearDownTestCase()
+TestTableOperation::TestTableOperation()
+: m_pCurTablePtr( NULL )
 {
 }
 
-void TestCreateNameTable1000_ZeroMemo::SetUp()
+void TestTableOperation::SetUpTestCase()
 {
-	for( int n = 0; n < 10; n++ ) {
-		ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( s_oTableMeta.m_nBindID, s_oTableMeta.m_nRecordWidth, s_oTableMeta.m_nKeyStrLen ) );
+}
+
+void TestTableOperation::TearDownTestCase()
+{
+}
+
+void TestTableOperation::SetUp()
+{
+	for( int n = 0; n < 3; n++ )
+	{
+		ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( T_Message_MarketInfo::GetID(), sizeof(T_Message_MarketInfo), 32 ) );
+		ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( T_Message_NameTable::GetID(), sizeof(T_Message_NameTable), 32 ) );
+		ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( T_Message_SnapTable::GetID(), sizeof(T_Message_SnapTable), 32 ) );
 	}
+
+	if( true == m_vctMarketInfo.empty() )
+	{
+		m_vctMarketInfo.push_back( T_Message_MarketInfo( "marketinfo1", 16, 20101201, 93018 ) );
+		m_vctMarketInfo.push_back( T_Message_MarketInfo( "marketinfo2", 36, 20121209, 103108 ) );
+		m_vctMarketInfo.push_back( T_Message_MarketInfo( "marketinfo3", 56, 20161901, 123636 ) );
+	}
+
+	if( true == m_vctNameTable.empty() )
+	{
+		m_vctNameTable.push_back( T_Message_NameTable( "SR1441930", "某种商品名称", 10, 12, 1, 60 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "600000", "上海市场", 12, 0, 1, 2 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "m2075-C-3000", "中文商品名称", 8, 6, 1, 7 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "M2075-P-9000", "某种商品名称", 1, 8, 8, 2 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "IH2075-C-3000", "商品名称3", 2, 5, 3, 555 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "SR1001930", "中文商品名称4", 3, 3, 0, 100 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "SR1231930", "中文商品名称6", 6, 321, 2, 9 ) );
+	}
+
+	if( true == m_vctSnapTable.empty() )
+	{
+		m_vctSnapTable.push_back( T_Message_SnapTable( "SR1441930", 10000, 12000, 9000, 123456000.102, 23415435 ) );
+		m_vctSnapTable.push_back( T_Message_SnapTable( "600000", 20000, 22000, 19000, 223456000.102, 33415435 ) );
+		m_vctSnapTable.push_back( T_Message_SnapTable( "m2075-C-3000", 30000, 32000, 29000, 323456000.102, 43415435 ) );
+		m_vctSnapTable.push_back( T_Message_SnapTable( "M2075-P-9000", 40000, 42000, 39000, 423456000.102, 53415435 ) );
+		m_vctSnapTable.push_back( T_Message_SnapTable( "IH2075-C-3000", 50000, 52000, 49000, 523456000.102, 63415435 ) );
+		m_vctSnapTable.push_back( T_Message_SnapTable( "SR1001930", 60000, 62000, 59000, 623456000.102, 73415435 ) );
+		m_vctSnapTable.push_back( T_Message_SnapTable( "SR1231930", 70000, 72000, 69000, 723456000.102, 83415435 ) );
+	}
+
+	m_nMaxLoopNum = m_vctNameTable.size() + 10;
 }
 
-void TestCreateNameTable1000_ZeroMemo::TearDown()
+void TestTableOperation::TearDown()
 {
-	TestLocateTable();
 }
 
-void TestCreateNameTable1000_ZeroMemo::TestLocateTable()
+void TestTableOperation::TestLocateMarketInfo( bool bIsExist )
 {
-	I_Table*	pTable = UnitTestEnv::GetDatabasePtr()->QueryTable( s_oTableMeta.m_nBindID );
+	I_Table*	pTable = UnitTestEnv::GetDatabasePtr()->QueryTable( T_Message_MarketInfo::GetID() );
+
+	m_pCurTablePtr = NULL;
+
+	if( false == bIsExist )
+	{
+		ASSERT_EQ( pTable, (I_Table*)NULL );		///< 返回数据表指针为空
+		return ;
+	}
 
 	ASSERT_NE( pTable, (I_Table*)NULL );			///< 返回数据表指针不能为空
 
-	if( NULL == s_pTablePtr )
+	m_pCurTablePtr = pTable;
+}
+
+void TestTableOperation::TestLocateNameTable( bool bIsExist )
+{
+	I_Table*	pTable = UnitTestEnv::GetDatabasePtr()->QueryTable( T_Message_NameTable::GetID() );
+
+	m_pCurTablePtr = NULL;
+
+	if( false == bIsExist )
 	{
-		s_pTablePtr = pTable;						///< 第一次查询到数据表指针
+		ASSERT_EQ( pTable, (I_Table*)NULL );		///< 返回数据表指针为空
+		return ;
+	}
+
+	ASSERT_NE( pTable, (I_Table*)NULL );			///< 返回数据表指针不能为空
+
+	m_pCurTablePtr = pTable;
+}
+
+void TestTableOperation::TestLocateSnapTable( bool bIsExist )
+{
+	I_Table*	pTable = UnitTestEnv::GetDatabasePtr()->QueryTable( T_Message_SnapTable::GetID() );
+
+	m_pCurTablePtr = NULL;
+
+	if( false == bIsExist )
+	{
+		ASSERT_EQ( pTable, (I_Table*)NULL );		///< 返回数据表指针为空
+		return ;
+	}
+
+	ASSERT_NE( pTable, (I_Table*)NULL );			///< 返回数据表指针不能为空
+
+	m_pCurTablePtr = pTable;
+}
+
+void TestTableOperation::TestInsertMarketInfo( unsigned int nSeed, bool bIsExist )
+{
+	unsigned __int64		nSerialNo = 0;
+	T_Message_MarketInfo&	refData = m_vctMarketInfo[nSeed % m_vctMarketInfo.size()];
+
+	if( false == bIsExist )
+	{
+		ASSERT_EQ( 1, m_pCurTablePtr->InsertRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
 	}
 	else
 	{
-		ASSERT_EQ( s_pTablePtr, pTable );			///< 之后每次查询得到的指针都应该等价于第一次的查询指针
+		ASSERT_EQ( 0, m_pCurTablePtr->InsertRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
 	}
 }
 
-void TestCreateNameTable1000_ZeroMemo::TestInsertRecord()
+void TestTableOperation::TestInsertNameTable( unsigned int nSeed, bool bIsExist )
 {
-	for( int n = 0; n < 10; n++ ) {
-		unsigned __int64	nSerialNo = 0;
-		ASSERT_LE( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable), nSerialNo ) );
-	}
-}
+	unsigned __int64		nSerialNo = 0;
+	T_Message_NameTable&	refData = m_vctNameTable[nSeed % m_vctNameTable.size()];
 
-void TestCreateNameTable1000_ZeroMemo::TestSelectRecord()
-{
-	for( int n = 0; n < 100; n++ ) {
-		RecordBlock	record = s_pTablePtr->SelectRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) );
-		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
-		ASSERT_EQ( true, record.Compare( RecordBlock((char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable)) ) );
-	}
-}
-
-void TestCreateNameTable1000_Normal::SetUpTestCase()
-{
-	TestCreateNameTable1000_ZeroMemo::SetUpTestCase();
-
-	///< 静态域：码表清零
-	::sprintf( s_sMsg1000NameTable.SecurityID, "OK123456-C-%u", 2800 );
-	::sprintf( s_sMsg1000NameTable.SecurityName, "测试名称 %d 号单元", 1 );
-	s_sMsg1000NameTable.SecurityType = 1024;
-	s_sMsg1000NameTable.Number1 = 1;
-	s_sMsg1000NameTable.Number2 = 2;
-	s_sMsg1000NameTable.Number3 = 3;
-}
-
-void TestCreateNameTable1000_Normal::TestInsertRecord()
-{
-	for( int n = 0; n < 10; n++ ) {
-		unsigned __int64	nSerialNo = 0;
-		ASSERT_LE( 0, s_pTablePtr->InsertRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable), nSerialNo ) );
-	}
-}
-
-void TestCreateNameTable1000_Normal::TestUpdateRecord()
-{
-	static unsigned long		nnn = 0;
-
-	s_sMsg1000NameTable.Number1 = 100 * nnn;
-	s_sMsg1000NameTable.Number2 = 200 * nnn;
-	s_sMsg1000NameTable.Number3 = 300 * nnn;
-	s_sMsg1000NameTable.SecurityType = 1024*3;
-	::sprintf( s_sMsg1000NameTable.SecurityName, "测试名称 %d 号单元", 2 );
-	nnn++;
-
-	for( int n = 0; n < 10; n++ )
+	if( false == bIsExist )
 	{
-		unsigned __int64	nSerialNo = 0;
-
-		if( 0 == n )
-		{
-			ASSERT_LT( 0, s_pTablePtr->UpdateRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable), nSerialNo ) );
-		}
-		else
-		{
-			ASSERT_EQ( 0, s_pTablePtr->UpdateRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable), nSerialNo ) );
-		}
+		ASSERT_EQ( 1, m_pCurTablePtr->InsertRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+	else
+	{
+		ASSERT_EQ( 0, m_pCurTablePtr->InsertRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
 	}
 }
 
-void TestCreateNameTable1000_Normal::TestSelectRecord()
+void TestTableOperation::TestInsertSnapTable( unsigned int nSeed, bool bIsExist )
 {
-	for( int n = 0; n < 100; n++ ) {
-		RecordBlock	record = s_pTablePtr->SelectRecord( (char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable) );
-		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
-		ASSERT_EQ( true, record.Compare( RecordBlock((char*)&s_sMsg1000NameTable, sizeof(s_sMsg1000NameTable)) ) );
+	unsigned __int64		nSerialNo = 0;
+	T_Message_SnapTable&	refData = m_vctSnapTable[nSeed % m_vctSnapTable.size()];
 
-		if( (n+1) % 20 == 0 )	{
-			T_Message1000_NameTable*	pNameTable = (T_Message1000_NameTable*)record.GetPtr();
-			::printf( "[%u] Code=%s,Name=%s,Type=%u,Num1=%u,Num2=%u,Num3=%u\n"
-					, (n+1), pNameTable->SecurityID, pNameTable->SecurityName, pNameTable->SecurityType
-					, pNameTable->Number1, pNameTable->Number2, pNameTable->Number3 );
-		}
+	if( false == bIsExist )
+	{
+		ASSERT_EQ( 1, m_pCurTablePtr->InsertRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+	else
+	{
+		ASSERT_EQ( 0, m_pCurTablePtr->InsertRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+}
+
+void TestTableOperation::TestDeleteMarketInfo( unsigned int nSeed )
+{
+	unsigned __int64		nSerialNo = 0;
+	T_Message_MarketInfo&	refData = m_vctMarketInfo[nSeed % m_vctMarketInfo.size()];
+
+	ASSERT_LE( 0, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+}
+
+void TestTableOperation::TestDeleteNameTable( unsigned int nSeed )
+{
+	unsigned __int64		nSerialNo = 0;
+	T_Message_NameTable&	refData = m_vctNameTable[nSeed % m_vctNameTable.size()];
+
+	ASSERT_LE( 0, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+}
+
+void TestTableOperation::TestDeleteSnapTable( unsigned int nSeed )
+{
+	unsigned __int64		nSerialNo = 0;
+	T_Message_SnapTable&	refData = m_vctSnapTable[nSeed % m_vctSnapTable.size()];
+
+	ASSERT_LE( 0, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+}
+
+void TestTableOperation::TestSelectMarketInfo( unsigned int nSeed, bool bIsExist )
+{
+	unsigned __int64		nSerialNo = 0;
+	T_Message_MarketInfo&	refData = m_vctMarketInfo[nSeed % m_vctMarketInfo.size()];
+
+	if( false == bIsExist )
+	{
+		RecordBlock	record = m_pCurTablePtr->SelectRecord( (char*)&refData, sizeof(refData) );
+		ASSERT_EQ( true, record.IsNone() );				///< 返回数据表
+	}
+	else
+	{
+		RecordBlock	record = m_pCurTablePtr->SelectRecord( (char*)&refData, sizeof(refData) );
+		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
+		ASSERT_EQ( true, record.Compare( RecordBlock((char*)&refData, sizeof(refData)) ) );
+	}
+}
+
+void TestTableOperation::TestSelectNameTable( unsigned int nSeed, bool bIsExist )
+{
+	unsigned __int64		nSerialNo = 0;
+	T_Message_NameTable&	refData = m_vctNameTable[nSeed % m_vctNameTable.size()];
+
+	if( false == bIsExist )
+	{
+		RecordBlock	record = m_pCurTablePtr->SelectRecord( (char*)&refData, sizeof(refData) );
+		ASSERT_EQ( true, record.IsNone() );				///< 返回数据表
+	}
+	else
+	{
+		RecordBlock	record = m_pCurTablePtr->SelectRecord( (char*)&refData, sizeof(refData) );
+		ASSERT_EQ( false, record.IsNone() );			///< 返回数据表指针不能为空
+		ASSERT_EQ( true, record.Compare( RecordBlock((char*)&refData, sizeof(refData)) ) );
+	}
+}
+
+void TestTableOperation::TestSelectSnapTable( unsigned int nSeed, bool bIsExist )
+{
+	unsigned __int64		nSerialNo = 0;
+	T_Message_SnapTable&	refData = m_vctSnapTable[nSeed % m_vctSnapTable.size()];
+
+	if( false == bIsExist )
+	{
+		RecordBlock	record = m_pCurTablePtr->SelectRecord( (char*)&refData, sizeof(refData) );
+		ASSERT_EQ( true, record.IsNone() );				///< 返回数据表
+	}
+	else
+	{
+		RecordBlock	record = m_pCurTablePtr->SelectRecord( (char*)&refData, sizeof(refData) );
+		ASSERT_NE( true, record.IsNone() );				///< 返回数据表指针不能为空
+		ASSERT_EQ( true, record.Compare( RecordBlock((char*)&refData, sizeof(refData)) ) );
 	}
 }
 
@@ -289,7 +396,6 @@ char* VariableWidthTable4MsgIDTest::MessagePointer()
 	return (char*)(&refData);
 }
 
-
 void TestAnyMessage_ID_X::SetUpTestCase()
 {
 }
@@ -433,26 +539,139 @@ void TestAnyMessage_ID_X::TearDown()
 ///< ------------------------ 测试用例定义 ----------------------------------------------------
 ///< ------------------------ 测试用例定义 ----------------------------------------------------
 
-///< 空结构测试
-TEST_F( TestCreateNameTable1000_ZeroMemo, InsertTest_ZeroMemoryOfNameTable )
+
+///< 对数据库进行空落盘/加载测试
+TEST_F( TestTableOperation, DumpEmptyTablesAndLoad )
 {
-	TestLocateTable();TestInsertRecord();
-	TestLocateTable();TestSelectRecord();
+	::printf( "\n **************** 执行测试前, 先清空DataRecover目录 ******************* \n" );
+	::Sleep( 3000 );
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), false );
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), false );
+
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		TestLocateMarketInfo( false );
+		TestLocateNameTable( false );
+		TestLocateSnapTable( false );
+	}
 }
 
-///< 带中文字字符串结构测试
-TEST_F( TestCreateNameTable1000_Normal, InsertUpdateTestOfNormalNameTable )
+///< 测试单条记录的插入测试
+TEST_F( TestTableOperation, InsertOneRecordAndDelete )
 {
-	TestLocateTable();TestInsertRecord();
-	TestLocateTable();TestSelectRecord();
-	TestUpdateRecord();TestSelectRecord();
+	TestLocateMarketInfo();TestInsertMarketInfo( 0 );TestSelectMarketInfo( 0, true );
+	TestDeleteMarketInfo( 0 );TestSelectMarketInfo( 0, false );
+	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
+
+	TestLocateNameTable();TestInsertNameTable( 0 );TestSelectNameTable( 0, true );
+	TestDeleteNameTable( 0 );TestSelectNameTable( 0, false );
+	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
+
+	TestLocateSnapTable();TestInsertSnapTable( 0 );TestSelectSnapTable( 0, true );
+	TestDeleteSnapTable( 0 );TestSelectSnapTable( 0, false );
+	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 }
 
-///< 对空数据表作记录空更新操作测试
-TEST_F( TestCreateNameTable1000_Normal, DumpAndLoad )
+///< 测试全部记录的插入测试
+TEST_F( TestTableOperation, InsertAllRecordAndDelete )
 {
-	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./data/" ), true );
-	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./data/" ), true );
+	unsigned int	nMkListSize = m_vctMarketInfo.size();
+	unsigned int	nNameTableSize = m_vctNameTable.size();
+	unsigned int	nSnapTableSize = m_vctSnapTable.size();
+
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		bool	bIsExistInsert = false;
+
+		bIsExistInsert = n>=nMkListSize?true:false;
+		TestLocateMarketInfo();TestInsertMarketInfo( n, bIsExistInsert );TestSelectMarketInfo( n, true );
+		bIsExistInsert = n>=nNameTableSize?true:false;
+		TestLocateNameTable();TestInsertNameTable( n, bIsExistInsert );TestSelectNameTable( n, true );
+		bIsExistInsert = n>=nSnapTableSize?true:false;
+		TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
+	}
+}
+
+///< 对全部记录的数据表进行落盘/加载测试
+TEST_F( TestTableOperation, DumpAllDataAndLoad )
+{
+	///< 保存前全部记录校验
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		TestLocateMarketInfo();TestSelectMarketInfo( n, true );
+		TestLocateNameTable();TestSelectNameTable( n, true );
+		TestLocateSnapTable();TestSelectSnapTable( n, true );
+	}
+
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), true );
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), true );
+
+	///< 重载后全部记录校验
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		TestLocateMarketInfo();TestSelectMarketInfo( n, true );
+		TestLocateNameTable();TestSelectNameTable( n, true );
+		TestLocateSnapTable();TestSelectSnapTable( n, true );
+	}
+}
+
+///< 删除部分记录
+TEST_F( TestTableOperation, DeleteSomeRecord )
+{
+	///< 删除前检查校对数据
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		TestLocateMarketInfo();TestSelectMarketInfo( n, true );
+		TestLocateNameTable();TestSelectNameTable( n, true );
+		TestLocateSnapTable();TestSelectSnapTable( n, true );
+	}
+
+	TestLocateMarketInfo();TestDeleteMarketInfo( 0 );TestSelectMarketInfo( 0, false );
+	TestLocateMarketInfo();TestDeleteMarketInfo( 3 );TestSelectMarketInfo( 3, false );
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		bool bIsExist = true;
+		switch( n%m_vctMarketInfo.size() )
+		{
+		case 0:
+		case 3:
+			bIsExist = false;
+			break;
+		}
+		TestSelectMarketInfo( n, bIsExist );
+	}
+
+	TestLocateNameTable();TestDeleteNameTable( 1 );TestSelectNameTable( 1, false );
+	TestLocateNameTable();TestDeleteNameTable( 5 );TestSelectNameTable( 5, false );
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		bool bIsExist = true;
+		switch( n%m_vctNameTable.size() )
+		{
+		case 1:
+		case 5:
+			bIsExist = false;
+			break;
+		}
+		TestSelectNameTable( n, bIsExist );
+	}
+
+	TestLocateSnapTable();TestDeleteSnapTable( 3 );TestSelectSnapTable( 3, false );
+	TestLocateSnapTable();TestDeleteSnapTable( m_vctSnapTable.size()-1 );TestSelectSnapTable( m_vctSnapTable.size()-1, false );
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		bool			bIsExist = true;
+		unsigned int	nMod = n % m_vctSnapTable.size();
+		if( nMod == 3 )
+		{
+			bIsExist = false;
+		}
+		else if( nMod == (m_vctSnapTable.size()-1) )
+		{
+			bIsExist = false;
+		}
+		TestSelectSnapTable( n, bIsExist );
+	}
 }
 
 ///< 创建一堆数据库对象
@@ -555,8 +774,6 @@ TEST_F( TestAnyMessage_ID_X, UpdateBeforeInsert )
 		TestUpdate1Table( m_vctIMessage[m], true, 0 );
 	}
 }
-
-
 
 
 ///< ---------------------- 单元测试初始化类定义 -------------------------

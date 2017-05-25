@@ -86,9 +86,18 @@ protected:
 	 * @param[in]		nErasePos				要移除节点的索引
 	 * @param[in]		pArrayOfNode			节点列表的首地址
 	 * @param[in,out]	nNodeTotalNumber		有效节点的个数
+	 * @param[in]		nPosInDataArray			删除节点指向数据在数据数据中的索引位置
 	 * return			true					操作成功
 	 */
-	bool				Erase1NodeFromList( struct T_ListNode* pNode2Erase, unsigned int nErasePos, struct T_ListNode* pArrayOfNode, unsigned int& nNodeTotalNumber );
+	bool				Erase1NodeFromList( struct T_ListNode* pNode2Erase, unsigned int nErasePos, struct T_ListNode* pArrayOfNode, unsigned int& nNodeTotalNumber, unsigned int nPosInDataArray );
+
+	/**
+	 * @brief			当数据数组某节点删除时，调整索引数组的数据位置指向
+	 * @param[in]		pNodeArray				需要被调整的索引数据地址
+	 * @param[in]		nNodeCount				索引数据的有效长度
+	 * @param[in]		nEraseIndex				被删除数值在数据数组中的位置
+	 */
+	void				CoordinateNodeIndex( struct T_ListNode* pNodeArray, unsigned int nNodeCount, unsigned int nEraseIndex );
 
 private:
 	T_ListNode			m_BucketOfHash[MAX_BUCKET_SIZE];			///< 哈稀桶
@@ -175,7 +184,8 @@ template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCK
 bool CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Erase1NodeFromList( struct T_ListNode* pNode2Erase
 																									, unsigned int nErasePos
 																									, struct T_ListNode* pArrayOfNode
-																									, unsigned int& nNodeTotalNumber )
+																									, unsigned int& nNodeTotalNumber
+																									, unsigned int nPosInDataArray )
 {
 	struct T_ListNode*		pFirstCopyNode = pNode2Erase + 1;
 
@@ -205,26 +215,51 @@ bool CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::E
 			}
 		}
 
+		if( refNode.nDataPos > nPosInDataArray )
+		{
+			refNode.nDataPos -= 1;
+		}
+
 	}
 
 	return true;
 }
 
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
+void CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::CoordinateNodeIndex( struct T_ListNode* pNodeArray, unsigned int nNodeCount, unsigned int nEraseIndex )
+{
+	for( int n = 0; n < nNodeCount; n++ )
+	{
+		struct T_ListNode&	refNode = pNodeArray[n];
+
+		if( refNode.nDataPos > nEraseIndex )
+		{
+			refNode.nDataPos -= 1;
+		}
+	}
+}
+
+template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
 int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::DeleteKey( T_KEY_TYPE nKey )
 {
+
+
 	T_KEY_TYPE				nKeyPos = nKey % MAX_BUCKET_SIZE;
 	struct T_ListNode*		pNode = m_BucketOfHash + nKeyPos;
 
 	while( false == pNode->IsNull() )
 	{
-		if( nKey == pNode->nHashKey )					///< 找到节点位置
+		if( nKey == pNode->nHashKey )								///< 找到节点位置
 		{
+			unsigned int	nPosInDataArray = pNode->nDataPos;		///< 该节点指向数据数组的索引位置
+
 			if( pNode >= (m_BucketOfHash+0) && pNode < (m_BucketOfHash+MAX_BUCKET_SIZE) )				///< 节点在哈希桶内(头节点)
 			{
 				if( NULL == pNode->pNextNode )
 				{
 					pNode->Clear();
+					CoordinateNodeIndex( m_BucketOfHash, MAX_BUCKET_SIZE, nPosInDataArray );
+					CoordinateNodeIndex( m_CollisionBucket, m_nUsedNumOfCollisionBucket, nPosInDataArray );
 				}
 				else
 				{
@@ -233,12 +268,20 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::De
 					pNode->pPrevNode = pNode;
 					((struct T_ListNode*)(pNode->pNextNode))->pPrevNode = pNode;
 
-					Erase1NodeFromList( pNodeInCollisionBucket, (pNodeInCollisionBucket-m_CollisionBucket)/sizeof(struct T_ListNode), m_CollisionBucket, m_nUsedNumOfCollisionBucket );
+					CoordinateNodeIndex( m_BucketOfHash, MAX_BUCKET_SIZE, nPosInDataArray );
+					Erase1NodeFromList( pNodeInCollisionBucket, (pNodeInCollisionBucket-m_CollisionBucket)/sizeof(struct T_ListNode), m_CollisionBucket, m_nUsedNumOfCollisionBucket, nPosInDataArray );
+					::memmove( m_ArrayOfData+nPosInDataArray, m_ArrayOfData+(nPosInDataArray+1), m_nUsedNumOfArrayData-(nPosInDataArray+1) );
 				}
+
+				return 1;
 			}
 			else if( pNode >= (m_CollisionBucket+0) && pNode < (m_CollisionBucket+MAX_DATATABLE_NUM) )	///< 节点在碰撞桶内(非头节点)
 			{
-				Erase1NodeFromList( pNode, nKeyPos, m_CollisionBucket, m_nUsedNumOfCollisionBucket );
+				CoordinateNodeIndex( m_BucketOfHash, MAX_BUCKET_SIZE, nPosInDataArray );
+				Erase1NodeFromList( pNode, nKeyPos, m_CollisionBucket, m_nUsedNumOfCollisionBucket, nPosInDataArray );
+				::memmove( m_ArrayOfData+nPosInDataArray, m_ArrayOfData+(nPosInDataArray+1), m_nUsedNumOfArrayData-(nPosInDataArray+1) );
+
+				return 1;
 			}
 			else
 			{
