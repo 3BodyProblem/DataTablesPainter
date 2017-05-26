@@ -87,6 +87,51 @@ void TestTableOperation::TearDown()
 {
 }
 
+void TestTableOperation::TestUpdateMarketInfo( unsigned int nSeed, bool bIsExist )
+{
+	unsigned __int64		nSerialNo = 0;
+	T_Message_MarketInfo&	refData = m_vctMarketInfo[nSeed % m_vctMarketInfo.size()];
+
+	if( false == bIsExist )
+	{
+		ASSERT_EQ( 0, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+	else
+	{
+		ASSERT_EQ( 1, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+}
+
+void TestTableOperation::TestUpdateNameTable( unsigned int nSeed, bool bIsExist )
+{
+	unsigned __int64		nSerialNo = 0;
+	T_Message_NameTable&	refData = m_vctNameTable[nSeed % m_vctNameTable.size()];
+
+	if( false == bIsExist )
+	{
+		ASSERT_EQ( 0, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+	else
+	{
+		ASSERT_EQ( 1, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+}
+
+void TestTableOperation::TestUpdateSnapTable( unsigned int nSeed, bool bIsExist )
+{
+	unsigned __int64		nSerialNo = 0;
+	T_Message_SnapTable&	refData = m_vctSnapTable[nSeed % m_vctSnapTable.size()];
+
+	if( false == bIsExist )
+	{
+		ASSERT_EQ( 0, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+	else
+	{
+		ASSERT_EQ( 1, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+}
+
 void TestTableOperation::TestLocateMarketInfo( bool bIsExist )
 {
 	I_Table*	pTable = UnitTestEnv::GetDatabasePtr()->QueryTable( T_Message_MarketInfo::GetID() );
@@ -183,28 +228,49 @@ void TestTableOperation::TestInsertSnapTable( unsigned int nSeed, bool bIsExist 
 	}
 }
 
-void TestTableOperation::TestDeleteMarketInfo( unsigned int nSeed )
+void TestTableOperation::TestDeleteMarketInfo( unsigned int nSeed, bool bIsExist )
 {
 	unsigned __int64		nSerialNo = 0;
 	T_Message_MarketInfo&	refData = m_vctMarketInfo[nSeed % m_vctMarketInfo.size()];
 
-	ASSERT_LE( 0, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	if( true == bIsExist )
+	{
+		ASSERT_EQ( 1, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+	else
+	{
+		ASSERT_EQ( 0, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
 }
 
-void TestTableOperation::TestDeleteNameTable( unsigned int nSeed )
+void TestTableOperation::TestDeleteNameTable( unsigned int nSeed, bool bIsExist )
 {
 	unsigned __int64		nSerialNo = 0;
 	T_Message_NameTable&	refData = m_vctNameTable[nSeed % m_vctNameTable.size()];
 
-	ASSERT_LE( 0, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	if( true == bIsExist )
+	{
+		ASSERT_EQ( 1, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+	else
+	{
+		ASSERT_EQ( 0, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
 }
 
-void TestTableOperation::TestDeleteSnapTable( unsigned int nSeed )
+void TestTableOperation::TestDeleteSnapTable( unsigned int nSeed, bool bIsExist )
 {
 	unsigned __int64		nSerialNo = 0;
 	T_Message_SnapTable&	refData = m_vctSnapTable[nSeed % m_vctSnapTable.size()];
 
-	ASSERT_LE( 0, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	if( true == bIsExist )
+	{
+		ASSERT_EQ( 1, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
+	else
+	{
+		ASSERT_EQ( 0, m_pCurTablePtr->DeleteRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+	}
 }
 
 void TestTableOperation::TestSelectMarketInfo( unsigned int nSeed, bool bIsExist )
@@ -558,7 +624,7 @@ void TestAnyMessage_ID_X::TearDown()
 ///< ------------------------ 测试用例定义 ----------------------------------------------------
 
 
-///< 对数据库进行空落盘/加载测试
+///< --------------- 对数据库进行空落盘/加载测试 --------------------------------------
 TEST_F( TestTableOperation, DumpEmptyTablesAndLoad )
 {
 	::printf( "\n **************** 执行测试前, 先清空DataRecover目录 ******************* \n" );
@@ -574,30 +640,30 @@ TEST_F( TestTableOperation, DumpEmptyTablesAndLoad )
 	}
 }
 
-///< 测试单条记录的插入和删除测试
+///< ----------------- 测试单条记录的插入和删除测试 ------------------------------------
 TEST_F( TestTableOperation, InsertOneRecordAndDelete )
 {
 	TestLocateMarketInfo();TestInsertMarketInfo( 0 );TestSelectMarketInfo( 0, true );
-	TestDeleteMarketInfo( 0 );TestSelectMarketInfo( 0, false );
+	TestDeleteMarketInfo( 0, true );TestSelectMarketInfo( 0, false );
 	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 
 	TestLocateNameTable();TestInsertNameTable( 0 );TestSelectNameTable( 0, true );
-	TestDeleteNameTable( 0 );TestSelectNameTable( 0, false );
+	TestDeleteNameTable( 0, true );TestSelectNameTable( 0, false );
 	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 
 	TestLocateSnapTable();TestInsertSnapTable( 0 );TestSelectSnapTable( 0, true );
-	TestDeleteSnapTable( 0 );TestSelectSnapTable( 0, false );
+	TestDeleteSnapTable( 0, true );TestSelectSnapTable( 0, false );
 	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 }
 
-///< 测试全部记录的插入测试
-TEST_F( TestTableOperation, InsertAllRecord )
+///< ------------------ 测试全部记录的插入+落盘+读盘测试 ----------------------------------------
+TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 {
 	unsigned int	nMkListSize = m_vctMarketInfo.size();
 	unsigned int	nNameTableSize = m_vctNameTable.size();
 	unsigned int	nSnapTableSize = m_vctSnapTable.size();
 
-	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	for( int n = 0; n < m_nMaxLoopNum*2; n++ )
 	{
 		bool	bIsExistInsert = false;
 
@@ -608,10 +674,34 @@ TEST_F( TestTableOperation, InsertAllRecord )
 		bIsExistInsert = n>=nSnapTableSize?true:false;
 		TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
 	}
+
+	for( int m = 0; m < m_nMaxLoopNum*2; m++ )
+	{
+		bool	bIsExistInsert = false;
+
+		bIsExistInsert = m<nMkListSize?true:false;
+		TestLocateMarketInfo();TestDeleteMarketInfo( m, bIsExistInsert );TestSelectMarketInfo( m, false );
+		bIsExistInsert = m<nNameTableSize?true:false;
+		TestLocateNameTable();TestDeleteNameTable( m, bIsExistInsert );TestSelectNameTable( m, false );
+		bIsExistInsert = m<nSnapTableSize?true:false;
+		TestLocateSnapTable();TestDeleteSnapTable( m, bIsExistInsert );TestSelectSnapTable( m, false );
+	}
+
+	for( int nn = 0; nn < m_nMaxLoopNum*2; nn++ )
+	{
+		bool	bIsExistInsert = false;
+
+		bIsExistInsert = nn>=nMkListSize?true:false;
+		TestLocateMarketInfo();TestInsertMarketInfo( nn, bIsExistInsert );TestSelectMarketInfo( nn, true );
+		bIsExistInsert = nn>=nNameTableSize?true:false;
+		TestLocateNameTable();TestInsertNameTable( nn, bIsExistInsert );TestSelectNameTable( nn, true );
+		bIsExistInsert = nn>=nSnapTableSize?true:false;
+		TestLocateSnapTable();TestInsertSnapTable( nn, bIsExistInsert );TestSelectSnapTable( nn, true );
+	}
 }
 
 ///< 对全部记录的数据表进行落盘/加载测试
-TEST_F( TestTableOperation, DumpAllDataAndLoad )
+TEST_F( TestTableOperation, DumpAllDataAndLoadAfterInsertAllRecords )
 {
 	///< 保存前全部记录校验
 	for( int n = 0; n < m_nMaxLoopNum; n++ )
@@ -633,7 +723,7 @@ TEST_F( TestTableOperation, DumpAllDataAndLoad )
 	}
 }
 
-///< 删除部分记录
+///< ---------------------- 删除部分记录+落盘+读盘 -----------------------------------------------
 TEST_F( TestTableOperation, DeleteSomeRecord )
 {
 	///< 删除前检查校对数据
@@ -644,23 +734,26 @@ TEST_F( TestTableOperation, DeleteSomeRecord )
 		TestLocateSnapTable();TestSelectSnapTable( n, true );
 	}
 
-	TestLocateMarketInfo();TestDeleteMarketInfo( 0 );TestSelectMarketInfo( 0, false );
-	TestLocateMarketInfo();TestDeleteMarketInfo( 3 );TestSelectMarketInfo( 3, false );
+	TestLocateMarketInfo();TestDeleteMarketInfo( 1, true );TestSelectMarketInfo( 1, false );
 	for( int n = 0; n < m_nMaxLoopNum; n++ )
 	{
 		bool bIsExist = true;
 		switch( n%m_vctMarketInfo.size() )
 		{
-		case 0:
-		case 3:
+		case 1:
 			bIsExist = false;
 			break;
 		}
 		TestSelectMarketInfo( n, bIsExist );
 	}
 
-	TestLocateNameTable();TestDeleteNameTable( 1 );TestSelectNameTable( 1, false );
-	TestLocateNameTable();TestDeleteNameTable( 5 );TestSelectNameTable( 5, false );
+	TestLocateNameTable();TestDeleteNameTable( 1, true );TestSelectNameTable( 1, false );
+	TestLocateNameTable();TestDeleteNameTable( 5, true );TestSelectNameTable( 5, false );
+	for( int a = 0 ; a < 10; a++ )
+	{
+		TestDeleteNameTable( 1, false );TestSelectNameTable( 1, false );
+		TestDeleteNameTable( 5, false );TestSelectNameTable( 5, false );
+	}
 	for( int n = 0; n < m_nMaxLoopNum; n++ )
 	{
 		bool bIsExist = true;
@@ -674,9 +767,15 @@ TEST_F( TestTableOperation, DeleteSomeRecord )
 		TestSelectNameTable( n, bIsExist );
 	}
 
-	TestLocateSnapTable();TestDeleteSnapTable( 0 );TestSelectSnapTable( 0, false );
-	TestLocateSnapTable();TestDeleteSnapTable( 3 );TestSelectSnapTable( 3, false );
-	TestLocateSnapTable();TestDeleteSnapTable( m_vctSnapTable.size()-1 );TestSelectSnapTable( m_vctSnapTable.size()-1, false );
+	TestLocateSnapTable();TestDeleteSnapTable( 0, true );TestSelectSnapTable( 0, false );
+	TestLocateSnapTable();TestDeleteSnapTable( 3, true );TestSelectSnapTable( 3, false );
+	TestLocateSnapTable();TestDeleteSnapTable( m_vctSnapTable.size()-1, true );TestSelectSnapTable( m_vctSnapTable.size()-1, false );
+	for( int b = 0; b < 10; b++ )
+	{
+		TestDeleteSnapTable( 0, false );TestSelectSnapTable( 0, false );
+		TestDeleteSnapTable( 3, false );TestSelectSnapTable( 3, false );
+		TestDeleteSnapTable( m_vctSnapTable.size()-1, false );TestSelectSnapTable( m_vctSnapTable.size()-1, false );
+	}
 	for( int n = 0; n < m_nMaxLoopNum; n++ )
 	{
 		bool			bIsExist = true;
@@ -710,8 +809,7 @@ TEST_F( TestTableOperation, DumpAllDataAndLoadAfterDeleteSomeRecords )
 		bool bIsExist = true;
 		switch( n%m_vctMarketInfo.size() )
 		{
-		case 0:
-		case 3:
+		case 1:
 			bIsExist = false;
 			break;
 		}
@@ -753,6 +851,9 @@ TEST_F( TestTableOperation, DumpAllDataAndLoadAfterDeleteSomeRecords )
 		TestSelectSnapTable( n, bIsExist );
 	}
 }
+
+
+
 
 ///< 创建一堆数据库对象
 TEST_F( TestAnyMessage_ID_X, CreateBundleOfDatabasePointer )
@@ -880,13 +981,6 @@ void UnitTestEnv::TearDown()
 		ASSERT_EQ( GetFactoryObject().ReleaseAllDatabase(), true );
 	}
 }
-
-
-
-
-
-
-
 
 
 ///< ---------------- 单元测试导出函数定义 -------------------------------

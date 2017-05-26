@@ -91,18 +91,21 @@ public:
 protected:
 	virtual void										TestLocateMarketInfo( bool bIsExist = true );
 	virtual void										TestInsertMarketInfo( unsigned int nSeed, bool bIsExist = false );
-	virtual void										TestDeleteMarketInfo( unsigned int nSeed );
+	virtual void										TestDeleteMarketInfo( unsigned int nSeed, bool bIsExist );
 	virtual void										TestSelectMarketInfo( unsigned int nSeed, bool bIsExist );
+	virtual void										TestUpdateMarketInfo( unsigned int nSeed, bool bIsExist );
 
 	virtual void										TestLocateNameTable( bool bIsExist = true );
 	virtual void										TestInsertNameTable( unsigned int nSeed, bool bIsExist = false );
-	virtual void										TestDeleteNameTable( unsigned int nSeed );
+	virtual void										TestDeleteNameTable( unsigned int nSeed, bool bIsExist );
 	virtual void										TestSelectNameTable( unsigned int nSeed, bool bIsExist );
+	virtual void										TestUpdateNameTable( unsigned int nSeed, bool bIsExist );
 
 	virtual void										TestLocateSnapTable( bool bIsExist = true );
 	virtual void										TestInsertSnapTable( unsigned int nSeed, bool bIsExist = false );
-	virtual void										TestDeleteSnapTable( unsigned int nSeed );
+	virtual void										TestDeleteSnapTable( unsigned int nSeed, bool bIsExist );
 	virtual void										TestSelectSnapTable( unsigned int nSeed, bool bIsExist );
+	virtual void										TestUpdateSnapTable( unsigned int nSeed, bool bIsExist );
 
 protected:
 	static	void										SetUpTestCase();
