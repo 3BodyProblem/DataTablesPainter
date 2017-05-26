@@ -68,7 +68,7 @@ void TestTableOperation::SetUp()
 		m_vctSnapTable.push_back( T_Message_SnapTable( "SR1001930", 60000, 62000, 59000, 623456000.102, 73415435 ) );
 		m_vctSnapTable.push_back( T_Message_SnapTable( "SR1231930", 70000, 72000, 69000, 723456000.102, 83415435 ) );
 
-		for( unsigned int i = 0; i < 1024*2; i++ )
+		for( unsigned int i = 1; i <= 1024*2; i++ )
 		{
 			char			pszCode[32] = { 0 };
 			unsigned int	nNow = (i+1) * 1024;
@@ -674,19 +674,81 @@ TEST_F( TestTableOperation, DeleteSomeRecord )
 		TestSelectNameTable( n, bIsExist );
 	}
 
+	TestLocateSnapTable();TestDeleteSnapTable( 0 );TestSelectSnapTable( 0, false );
 	TestLocateSnapTable();TestDeleteSnapTable( 3 );TestSelectSnapTable( 3, false );
 	TestLocateSnapTable();TestDeleteSnapTable( m_vctSnapTable.size()-1 );TestSelectSnapTable( m_vctSnapTable.size()-1, false );
 	for( int n = 0; n < m_nMaxLoopNum; n++ )
 	{
 		bool			bIsExist = true;
 		unsigned int	nMod = n % m_vctSnapTable.size();
-		if( nMod == 3 )
+		switch( nMod )
 		{
+		case 0:
+		case 3:
 			bIsExist = false;
+			break;
+		default:
+			if( nMod == (m_vctSnapTable.size()-1) )
+			{
+				bIsExist = false;
+			}
+			break;
 		}
-		else if( nMod == (m_vctSnapTable.size()-1) )
+		TestSelectSnapTable( n, bIsExist );
+	}
+}
+
+///< 对全部记录的数据表进行落盘/加载测试
+TEST_F( TestTableOperation, DumpAllDataAndLoadAfterDeleteSomeRecords )
+{
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), true );
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), true );
+
+	TestLocateMarketInfo();
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		bool bIsExist = true;
+		switch( n%m_vctMarketInfo.size() )
 		{
+		case 0:
+		case 3:
 			bIsExist = false;
+			break;
+		}
+		TestSelectMarketInfo( n, bIsExist );
+	}
+
+	TestLocateNameTable();
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		bool bIsExist = true;
+		switch( n%m_vctNameTable.size() )
+		{
+		case 1:
+		case 5:
+			bIsExist = false;
+			break;
+		}
+		TestSelectNameTable( n, bIsExist );
+	}
+
+	TestLocateSnapTable();
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		bool			bIsExist = true;
+		unsigned int	nMod = n % m_vctSnapTable.size();
+		switch( nMod )
+		{
+		case 0:
+		case 3:
+			bIsExist = false;
+			break;
+		default:
+			if( nMod == (m_vctSnapTable.size()-1) )
+			{
+				bIsExist = false;
+			}
+			break;
 		}
 		TestSelectSnapTable( n, bIsExist );
 	}

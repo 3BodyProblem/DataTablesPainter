@@ -167,8 +167,9 @@ RecordBlock DynamicTable::SelectRecord( char* pKeyStr, unsigned int nKeyLen )
 		}
 
 		unsigned int			nRecordOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
-		if( nRecordOffset >= (m_nMaxBufferSize-nRecordOffset) )
+		if( m_oTableMeta.m_nRecordWidth > (m_nMaxBufferSize-nRecordOffset) )	///< 是否有足够的后续长度( 需要大于等于DataBlockSize)
 		{
+			::printf( "DynamicTable::SelectRecord() : subscript out of range of memo-tables list\n" );
 			return RecordBlock( NULL, 0 );
 		}
 
@@ -208,8 +209,9 @@ int DynamicTable::DeleteRecord( char* pKeyStr, unsigned int nKeyLen, unsigned __
 		}
 
 		unsigned int			nRecordOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
-		if( nRecordOffset >= (m_nMaxBufferSize-nRecordOffset) )
+		if( m_oTableMeta.m_nRecordWidth > (m_nMaxBufferSize-nRecordOffset) )	///< 是否有足够的后续长度( 需要大于等于DataBlockSize)
 		{
+			::printf( "DynamicTable::DeleteRecord() : subscript out of range of memo-tables list\n" );
 			return -2;
 		}
 
@@ -276,18 +278,24 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 		}
 
 		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
+		if( m_oTableMeta.m_nRecordWidth > (m_nMaxBufferSize-nDataOffsetIndex) )	///< 是否有足够的后续长度( 需要大于等于DataBlockSize)
+		{
+			::printf( "DynamicTable::InsertRecord() : subscript out of range of memo-tables list\n" );
+			return -4;
+		}
+
 		DyncRecord				oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
 
 		if( true == pRecordPostion->Empty() )
 		{
 			::printf( "DynamicTable::InsertRecord() : invalid MainKey, cannot locate record in table\n" );
-			return -4;
+			return -5;
 		}
 
 		if( nDataOffsetIndex > (m_nMaxBufferSize-nRecordLen) )
 		{
 			::printf( "DynamicTable::InsertRecord() : subscript out of range of memo-tables list\n" );
-			return -5;
+			return -6;
 		}
 
 		if( oCurRecord.CloneFrom( objRecord ) >= 0 )
@@ -339,9 +347,9 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned
 			return 0;
 		}
 
-		if( nDataOffsetIndex > (m_nMaxBufferSize-nRecordLen) )
+		if( m_oTableMeta.m_nRecordWidth > (m_nMaxBufferSize-nRecordLen) )
 		{
-			::printf( "MemDatabase::UpdateRecord() : subscript out of range of memo-tables list\n" );
+			::printf( "DynamicTable::UpdateRecord() : subscript out of range of memo-tables list\n" );
 			return -3;
 		}
 

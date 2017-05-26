@@ -97,7 +97,7 @@ protected:
 	 * @param[in]		nNodeCount				索引数据的有效长度
 	 * @param[in]		nEraseIndex				被删除数值在数据数组中的位置
 	 */
-	void				CoordinateNodeIndex( struct T_ListNode* pNodeArray, unsigned int nNodeCount, unsigned int nEraseIndex );
+	void				CoordinateNodeIndex( struct T_ListNode* pNodeArray, unsigned int nNodeCount, int nEraseIndex );
 
 private:
 	T_ListNode			m_BucketOfHash[MAX_BUCKET_SIZE];			///< 哈稀桶
@@ -165,6 +165,8 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::Ne
 			m_ArrayOfData[m_nUsedNumOfArrayData] = oData;
 			pNewNodeOfCollision->nHashKey = nKey;
 			pNewNodeOfCollision->nDataPos = m_nUsedNumOfArrayData++;
+			pNewNodeOfCollision->pPrevNode = pNode;
+
 			pNode->pPrevNode = pLastNode;
 			pNode->pNextNode = pNewNodeOfCollision;
 
@@ -190,8 +192,15 @@ bool CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::E
 	struct T_ListNode*		pFirstCopyNode = pNode2Erase + 1;
 
 	///< 先从链表中移除节点
-	((struct T_ListNode*)(pNode2Erase->pPrevNode))->pNextNode = pNode2Erase->pNextNode;
-	((struct T_ListNode*)(pNode2Erase->pNextNode))->pPrevNode = pNode2Erase->pPrevNode;
+	if( NULL != pNode2Erase->pPrevNode )
+	{
+		((struct T_ListNode*)(pNode2Erase->pPrevNode))->pNextNode = pNode2Erase->pNextNode;
+	}
+
+	if( NULL != pNode2Erase->pNextNode )
+	{
+		((struct T_ListNode*)(pNode2Erase->pNextNode))->pPrevNode = pNode2Erase->pPrevNode;
+	}
 
 	///< 移掉中间被移除节点的被占空间（通过内存移动+指针重新计算偏移）
 	nNodeTotalNumber -= 1;
@@ -226,9 +235,9 @@ bool CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::E
 }
 
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
-void CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::CoordinateNodeIndex( struct T_ListNode* pNodeArray, unsigned int nNodeCount, unsigned int nEraseIndex )
+void CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::CoordinateNodeIndex( struct T_ListNode* pNodeArray, unsigned int nNodeCount, int nEraseIndex )
 {
-	for( int n = 0; n < nNodeCount; n++ )
+	for( unsigned int n = 0; n < nNodeCount; n++ )
 	{
 		struct T_ListNode&	refNode = pNodeArray[n];
 
@@ -242,8 +251,6 @@ void CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::C
 template<typename T_KEY_TYPE, typename T_VALUE_TYPE, const unsigned int MAX_BUCKET_SIZE, const unsigned int MAX_DATATABLE_NUM>
 int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::DeleteKey( T_KEY_TYPE nKey )
 {
-
-
 	T_KEY_TYPE				nKeyPos = nKey % MAX_BUCKET_SIZE;
 	struct T_ListNode*		pNode = m_BucketOfHash + nKeyPos;
 
