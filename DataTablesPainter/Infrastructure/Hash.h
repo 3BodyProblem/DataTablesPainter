@@ -271,9 +271,12 @@ int CollisionHash<T_KEY_TYPE,T_VALUE_TYPE,MAX_BUCKET_SIZE,MAX_DATATABLE_NUM>::De
 				else
 				{
 					struct T_ListNode*	pNodeInCollisionBucket = (struct T_ListNode*)(pNode->pNextNode);
+					pNodeInCollisionBucket->pPrevNode = NULL;
 					::memcpy( pNode, pNodeInCollisionBucket, sizeof(struct T_ListNode) );
-					pNode->pPrevNode = pNode;
-					((struct T_ListNode*)(pNode->pNextNode))->pPrevNode = pNode;
+					if( NULL != pNode->pNextNode )
+					{
+						((struct T_ListNode*)(pNode->pNextNode))->pPrevNode = pNode;
+					}
 
 					CoordinateNodeIndex( m_BucketOfHash, MAX_BUCKET_SIZE, nPosInDataArray );
 					Erase1NodeFromList( pNodeInCollisionBucket, (pNodeInCollisionBucket-m_CollisionBucket)/sizeof(struct T_ListNode), m_CollisionBucket, m_nUsedNumOfCollisionBucket, nPosInDataArray );

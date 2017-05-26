@@ -216,19 +216,26 @@ int DynamicTable::DeleteRecord( char* pKeyStr, unsigned int nKeyLen, unsigned __
 		}
 
 		unsigned int			nNextRecordPos = nRecordOffset + m_oTableMeta.m_nRecordWidth;
+
+		if( 0 != ::memcmp( pKeyStr, m_pRecordsBuffer+nRecordOffset, ::strlen( pKeyStr ) ) )
+		{
+			::printf( "DynamicTable::DeleteRecord() : failed 2 locate record key, %s != %d\n", pKeyStr, m_pRecordsBuffer+nRecordOffset );
+			return -3;
+		}
+
 		if( NULL != ::memmove( m_pRecordsBuffer+nRecordOffset, m_pRecordsBuffer+nNextRecordPos, m_nCurrentDataSize - nNextRecordPos ) )
 		{
 			m_nCurrentDataSize -= m_oTableMeta.m_nRecordWidth;
 			if( 0 >= m_oHashTableOfIndex.DeleteKey( nDataSeqKey ) )
 			{
 				::printf( "DynamicTable::DeleteRecord() : failed 2 delete hash key\n" );
-				return -3;
+				return -4;
 			}
 
 			return 1;
 		}
 
-		return -4;
+		return -5;
 	}
 	catch( std::exception& err )
 	{
