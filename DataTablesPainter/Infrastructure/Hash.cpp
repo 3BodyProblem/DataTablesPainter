@@ -21,7 +21,7 @@ int CollisionHash::NewKey( unsigned __int64 nKey, int nDataPos, unsigned __int64
 
 	if( m_nUsedNumOfCollisionBucket >= (MAX_DATATABLE_NUM-1) )
 	{
-		throw std::runtime_error( "CollisionHash::NewKey() : data buffer is full." );
+		throw std::runtime_error( "CollisionHash::NewKey() : data buffer is full" );
 	}
 
 	if( true == pNode->IsNull() )
@@ -31,6 +31,7 @@ int CollisionHash::NewKey( unsigned __int64 nKey, int nDataPos, unsigned __int64
 		pNode->nUpdateSequence = nSeqNo;
 		pNode->pPrevNode = NULL;
 		pNode->pNextNode = NULL;
+
 		return 1;
 	}
 
@@ -99,9 +100,12 @@ bool CollisionHash::CoordinateCollisionBucketPtr( struct T_ListNode* pNode2Erase
 
 bool CollisionHash::CoordinateHashBucketPtr( struct T_ListNode* pEraseNodeInCollisionBucket )
 {
-	for( int n = 0; n < MAX_BUCKET_SIZE; n++ )	{
+	for( int n = 0; n < MAX_BUCKET_SIZE; n++ )
+	{
 		struct T_ListNode&	refNode = m_BucketOfHash[n];
-		if( refNode.pNextNode > pEraseNodeInCollisionBucket ) {
+
+		if( refNode.pNextNode > pEraseNodeInCollisionBucket )
+		{
 			refNode.pNextNode = ((char*)(refNode.pNextNode)) - sizeof(struct T_ListNode);
 		}
 	}

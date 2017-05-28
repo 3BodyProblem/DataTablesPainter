@@ -35,6 +35,8 @@ int MemDatabase::DeleteTables()
 {
 	try
 	{
+		CriticalLock			lock( m_oCSLock );
+
 		std::for_each( m_arrayQuotationTables, m_arrayQuotationTables+MAX_TABBLE_NO, std::mem_fun_ref(&DynamicTable::Release) );
 
 		m_nUsedTableNum = 0;					///< ÒýÓÃ¹éÁã
