@@ -86,7 +86,7 @@ void TestTableOperation::SetUp()
 			unsigned int	nHigh = nNow + 100 * j;
 			unsigned int	nLow = nNow - 100 * j;
 
-			::sprintf( pszCode, "%u-C-A100", 10000 + j );
+			::sprintf( pszCode, "%u-c-1b0a", 10000 + j );
 			m_vctSnapTable.push_back( T_Message_SnapTable( pszCode, nNow, nHigh, nLow, nNow*123342.102, nNow*1024 ) );
 		}
 	}
