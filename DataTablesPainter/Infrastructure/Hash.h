@@ -41,7 +41,7 @@ public:
 
 
 #if _DEBUG
-#define		MAX_BUCKET_SIZE			(16)
+#define		MAX_BUCKET_SIZE			(17)
 #define		MAX_DATATABLE_NUM		(1024*8)
 #else
 #define		MAX_BUCKET_SIZE			(1024*8)
