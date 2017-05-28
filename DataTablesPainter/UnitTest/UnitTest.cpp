@@ -11,6 +11,11 @@
 ///< --------------------- 单元测试类定义 --------------------------------
 
 
+std::vector<TestTableOperation::T_Message_MarketInfo> TestTableOperation::m_vctMarketInfo;
+std::vector<TestTableOperation::T_Message_NameTable> TestTableOperation::m_vctNameTable;
+std::vector<TestTableOperation::T_Message_SnapTable> TestTableOperation::m_vctSnapTable;
+
+
 TestTableOperation::TestTableOperation()
 : m_pCurTablePtr( NULL )
 {
@@ -102,6 +107,7 @@ void TestTableOperation::TestUpdateMarketInfo( unsigned int nSeed, bool bIsExist
 {
 	unsigned __int64		nSerialNo = 0;
 	T_Message_MarketInfo&	refData = m_vctMarketInfo[nSeed % m_vctMarketInfo.size()];
+	bool					bEmptyUpdate = (0==(nSeed % 7)) && bIsExist;
 
 	if( false == bIsExist )
 	{
@@ -109,7 +115,15 @@ void TestTableOperation::TestUpdateMarketInfo( unsigned int nSeed, bool bIsExist
 	}
 	else
 	{
-		ASSERT_EQ( 1, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+		if( true == bEmptyUpdate )
+		{
+			ASSERT_EQ( 0, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+		}
+		else
+		{
+			refData.MarketTime++;
+			ASSERT_EQ( 1, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+		}
 	}
 }
 
@@ -117,6 +131,7 @@ void TestTableOperation::TestUpdateNameTable( unsigned int nSeed, bool bIsExist 
 {
 	unsigned __int64		nSerialNo = 0;
 	T_Message_NameTable&	refData = m_vctNameTable[nSeed % m_vctNameTable.size()];
+	bool					bEmptyUpdate = (0==(nSeed % 7)) && bIsExist;
 
 	if( false == bIsExist )
 	{
@@ -124,7 +139,15 @@ void TestTableOperation::TestUpdateNameTable( unsigned int nSeed, bool bIsExist 
 	}
 	else
 	{
-		ASSERT_EQ( 1, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+		if( true == bEmptyUpdate )
+		{
+			ASSERT_EQ( 0, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+		}
+		else
+		{
+			refData.Number1++;
+			ASSERT_EQ( 1, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+		}
 	}
 }
 
@@ -132,6 +155,7 @@ void TestTableOperation::TestUpdateSnapTable( unsigned int nSeed, bool bIsExist 
 {
 	unsigned __int64		nSerialNo = 0;
 	T_Message_SnapTable&	refData = m_vctSnapTable[nSeed % m_vctSnapTable.size()];
+	bool					bEmptyUpdate = (0==(nSeed % 7)) && bIsExist;
 
 	if( false == bIsExist )
 	{
@@ -139,7 +163,15 @@ void TestTableOperation::TestUpdateSnapTable( unsigned int nSeed, bool bIsExist 
 	}
 	else
 	{
-		ASSERT_EQ( 1, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+		if( true == bEmptyUpdate )
+		{
+			ASSERT_EQ( 0, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+		}
+		else
+		{
+			refData.Volume++;
+			ASSERT_EQ( 1, m_pCurTablePtr->UpdateRecord( (char*)&refData, sizeof(refData), nSerialNo ) );
+		}
 	}
 }
 
@@ -730,7 +762,7 @@ TEST_F( TestTableOperation, DumpAllDataAndLoadAfterInsertAllRecords )
 }
 
 ///< ---------------------- 删除部分记录+落盘+读盘 -----------------------------------------------
-TEST_F( TestTableOperation, DeleteSomeRecord )
+TEST_F( TestTableOperation, DeleteSomeRecordWithUpdate )
 {
 	///< 删除前检查校对数据
 	for( int n = 0; n < m_nMaxLoopNum; n++ )
@@ -750,6 +782,7 @@ TEST_F( TestTableOperation, DeleteSomeRecord )
 			bIsExist = false;
 			break;
 		}
+		TestUpdateMarketInfo( n, bIsExist );
 		TestSelectMarketInfo( n, bIsExist );
 	}
 
@@ -770,6 +803,7 @@ TEST_F( TestTableOperation, DeleteSomeRecord )
 			bIsExist = false;
 			break;
 		}
+		TestUpdateNameTable( n, bIsExist );
 		TestSelectNameTable( n, bIsExist );
 	}
 
@@ -799,6 +833,7 @@ TEST_F( TestTableOperation, DeleteSomeRecord )
 			}
 			break;
 		}
+		TestUpdateSnapTable( n, bIsExist );
 		TestSelectSnapTable( n, bIsExist );
 	}
 }
@@ -819,6 +854,7 @@ TEST_F( TestTableOperation, DumpAllDataAndLoadAfterDeleteSomeRecords )
 			bIsExist = false;
 			break;
 		}
+		TestUpdateMarketInfo( n, bIsExist );
 		TestSelectMarketInfo( n, bIsExist );
 	}
 
@@ -833,6 +869,7 @@ TEST_F( TestTableOperation, DumpAllDataAndLoadAfterDeleteSomeRecords )
 			bIsExist = false;
 			break;
 		}
+		TestUpdateNameTable( n, bIsExist );
 		TestSelectNameTable( n, bIsExist );
 	}
 
@@ -854,10 +891,10 @@ TEST_F( TestTableOperation, DumpAllDataAndLoadAfterDeleteSomeRecords )
 			}
 			break;
 		}
+		TestUpdateSnapTable( n, bIsExist );
 		TestSelectSnapTable( n, bIsExist );
 	}
 }
-
 
 ///< 创建一堆数据库对象
 TEST_F( TestAnyMessage_ID_X, CreateBundleOfDatabasePointer )
@@ -907,36 +944,6 @@ TEST_F( TestAnyMessage_ID_X, CreateDeleteAllTablesTest )
 	::printf( "query table in empty database.........................................\n" );
 	for( unsigned int ii = 0; ii < nCount; ii++ )	{	TestLocateTable( m_vctIMessage[ii]->MessageID(), &pTable, false );	}
 	::printf( "happy ending..........................................................\n" );
-}
-
-///< 对一数据库表进行插入更新测试(成功状态)
-TEST_F( TestAnyMessage_ID_X, InsertUpdateTest )
-{
-	I_Table*			pTable = NULL;
-	unsigned int		nCount = m_vctIMessage.size();
-
-	///< 创建所有数据表
-	TestCreateAllTable();
-	///< 再次创建所有数据表
-	TestCreateAllTable();
-	///< 重复创建所有数据表
-	TestCreateAllTable();
-	///< 重复创建所有数据表
-	TestCreateAllTable();
-	///< 重复创建所有数据表
-	TestCreateAllTable();
-	///< 随意定义一个存在的数据表
-	for( unsigned int j = 0; j < nCount; j++ )	{
-		TestLocateTable( m_vctIMessage[j]->MessageID(), &pTable, true );
-	}
-	///< 各数据表记录插入循环
-	for( unsigned int n = 0; n < nCount; n++ )	{
-		TestInsert1Table( m_vctIMessage[n], true, 1 );
-	}
-	///< 各数据表记录更新循环
-	for( unsigned int m = 0; m < nCount; m++ )	{
-		TestUpdate1Table( m_vctIMessage[m], true, 1 );
-	}
 }
 
 ///< 对空数据表作记录空更新操作测试
