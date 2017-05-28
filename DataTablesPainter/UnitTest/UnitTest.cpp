@@ -444,7 +444,7 @@ VariableWidthTable4MsgIDTest::VariableWidthTable4MsgIDTest()
 	{
 		m_vctMessage.reserve( 132 );
 
-		for( int n = 0; n < 128; n++ )
+		for( int n = 0; n < 3; n++ )
 		{
 			char			pszCode[64] = { 0 };
 
@@ -857,8 +857,6 @@ TEST_F( TestTableOperation, DumpAllDataAndLoadAfterDeleteSomeRecords )
 		TestSelectSnapTable( n, bIsExist );
 	}
 }
-
-
 
 
 ///< 创建一堆数据库对象

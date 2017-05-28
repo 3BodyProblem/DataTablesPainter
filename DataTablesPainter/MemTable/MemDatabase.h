@@ -11,7 +11,7 @@ namespace MemoryCollection
 {
 
 
-const unsigned int						MAX_TABBLE_NO = 128*2;				///< 最多可分配的数据表的数量
+const unsigned int			MAX_TABBLE_NO = 32;				///< 最多可分配的数据表的数量
 
 
 /**
