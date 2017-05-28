@@ -44,18 +44,18 @@ void TestTableOperation::SetUp()
 	{
 		m_vctNameTable.push_back( T_Message_NameTable( "SR1441930", "某种商品名称", 10, 12, 1, 60 ) );
 		m_vctNameTable.push_back( T_Message_NameTable( "600000", "上海市场", 12, 0, 1, 2 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "m2075-C-3000", "中文商品名称", 8, 6, 1, 7 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "M2075-P-9000", "某种商品名称", 1, 8, 8, 2 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "IH2075-C-3000", "商品名称3", 2, 5, 3, 555 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "SR1001930", "中文商品名称4", 3, 3, 0, 100 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "SR1231930", "中文商品名称6", 6, 321, 2, 9 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "aR1441930", "a某种商品名称", 10, 12, 1, 60 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "m075-C-3000", "中文商品名称", 8, 6, 1, 7 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "M075-P-9000", "某种商品名称", 1, 8, 8, 2 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "IH075-C-3000", "商品名称3", 2, 5, 3, 555 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "SR001930", "中文商品名称4", 3, 3, 0, 100 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "SR231930", "中文商品名称6", 6, 321, 2, 9 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "aR441930", "a某种商品名称", 10, 12, 1, 60 ) );
 		m_vctNameTable.push_back( T_Message_NameTable( "b00000", "b上海市场", 12, 0, 1, 2 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "c2075-C-3000", "c中文商品名称", 8, 6, 1, 7 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "d2075-P-9000", "d某种商品名称", 1, 8, 8, 2 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "e2075-C-3000", "e商品名称3", 2, 5, 3, 555 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "f1001930", "f中文商品名称4", 3, 3, 0, 100 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "g1231930", "g中文商品名称6", 6, 321, 2, 9 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "c075-C-3000", "c中文商品名称", 8, 6, 1, 7 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "d075-P-9000", "d某种商品名称", 1, 8, 8, 2 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "e075-C-3000", "e商品名称3", 2, 5, 3, 555 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "f101930", "f中文商品名称4", 3, 3, 0, 100 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "g131930", "g中文商品名称6", 6, 321, 2, 9 ) );
 	}
 
 	if( true == m_vctSnapTable.empty() )

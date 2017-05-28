@@ -52,24 +52,7 @@ protected:
 };
 
 
-/**
- * @class			T_RECORD_POS
- * @brief			数据记录位置信息结构
- * @author			barry
- * @date			2017/4/2
- */
-struct T_RECORD_POS
-{
-	T_RECORD_POS() { nRecordPos = -1; nUpdateSequence = 0; }
-	T_RECORD_POS( unsigned int nPos, unsigned __int64 nUpdateSeqNo ) { nRecordPos = nPos; nUpdateSequence = nUpdateSeqNo; }
-	void				Clear()	{	nRecordPos = -1;	}
-	bool				Empty() const	{	if( nRecordPos < 0 )	return true;	else	return false;	}
-	int					nRecordPos;				///< 使用数据表的索引位置
-	unsigned __int64	nUpdateSequence;		///< 更新次数序号
-};
-
-
-typedef CollisionHash<unsigned __int64,T_RECORD_POS>	TRecordHash;	///< 哈希表(key,index of array)
+typedef CollisionHash<unsigned __int64>		TRecordHash;	///< 哈希表(key,index of array)
 
 
 /**

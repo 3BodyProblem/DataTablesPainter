@@ -11,24 +11,8 @@ namespace MemoryCollection
 {
 
 
-/**
- * @class			T_TABLE_POS_INF
- * @brief			数据表位置信息结构
- * @author			barry
- * @date			2017/4/2
- */
-struct T_TABLE_POS_INF
-{
-	T_TABLE_POS_INF() { nTablePosition = -1; }
-	T_TABLE_POS_INF( unsigned int nTablePos ) { nTablePosition = nTablePos; }
-	void			Clear()	{	nTablePosition = -1;	}
-	bool			Empty() const	{	if( nTablePosition < 0 )	return true;	else	return false;	}
-	int				nTablePosition;			///< 使用数据表的索引位置
-};
-
-
-const unsigned int MAX_TABBLE_NO = 128*2;									///< 最多可分配的数据表的数量
-typedef CollisionHash<unsigned int, struct T_TABLE_POS_INF>	TPostionHash;	///< 哈希表
+const unsigned int						MAX_TABBLE_NO = 128*2;				///< 最多可分配的数据表的数量
+typedef CollisionHash<unsigned int>		TPostionHash;						///< 哈希表
 
 
 /**
