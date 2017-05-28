@@ -115,7 +115,7 @@ protected:
 
 protected:
 	I_Table*											m_pCurTablePtr;			///< 市场信息列表
-	unsigned int										m_nMaxLoopNum;			///< 最大数据队列长度
+	int													m_nMaxLoopNum;			///< 最大数据队列长度
 	std::vector<T_Message_MarketInfo>					m_vctMarketInfo;		///< 市场信息列表
 	std::vector<T_Message_NameTable>					m_vctNameTable;			///< 市场码表列表
 	std::vector<T_Message_SnapTable>					m_vctSnapTable;			///< 市场快照列表

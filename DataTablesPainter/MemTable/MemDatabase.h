@@ -12,7 +12,6 @@ namespace MemoryCollection
 
 
 const unsigned int						MAX_TABBLE_NO = 128*2;				///< 最多可分配的数据表的数量
-typedef CollisionHash<unsigned int>		TPostionHash;						///< 哈希表
 
 
 /**
@@ -87,7 +86,7 @@ public:
 
 private:
 	CriticalObject				m_oCSLock;									///< 内存表锁
-	TPostionHash				m_HashTableOfPostion;						///< 哈稀表,msgid所在的数据选择类型
+	CollisionHash				m_HashTableOfPostion;						///< 哈稀表,msgid所在的数据选择类型
 	DynamicTable				m_arrayQuotationTables[MAX_TABBLE_NO];		///< 行情动态表集合
 	unsigned int				m_nUsedTableNum;							///< 已经使用珠数据表数量
 private:

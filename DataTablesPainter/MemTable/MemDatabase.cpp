@@ -1,3 +1,4 @@
+#pragma warning(disable : 4996)
 #include "MemDatabase.h"
 #include "../Infrastructure/DataDump.h"
 #include "../Infrastructure/DateTime.h"
@@ -67,7 +68,7 @@ bool MemDatabase::CreateTable( unsigned int nBindID, unsigned int nRecordWidth, 
 		}
 
 		///< 分配设置好数据表索引哈稀
-		if( (nResult=m_HashTableOfPostion.NewKey( nBindID, struct T_RECORD_POS(m_nUsedTableNum, 0) )) > 0 )
+		if( (nResult=m_HashTableOfPostion.NewKey( nBindID, m_nUsedTableNum, 0 )) > 0 )
 		{	///< 使用数据表元信息结构初始化刚分配的数据表对象
 			if( m_nUsedTableNum >= (MAX_TABBLE_NO-1) )
 			{
@@ -98,7 +99,7 @@ I_Table* MemDatabase::QueryTable( unsigned int nBindID )
 	try
 	{
 		CriticalLock				lock( m_oCSLock );
-		struct T_RECORD_POS*		pInfoPosition = m_HashTableOfPostion[nBindID];	///< 取得哈稀索引信息
+		struct T_ListNode*			pInfoPosition = m_HashTableOfPostion[nBindID];	///< 取得哈稀索引信息
 
 		if( NULL == pInfoPosition )
 		{
@@ -106,13 +107,13 @@ I_Table* MemDatabase::QueryTable( unsigned int nBindID )
 			return NULL;
 		}
 
-		if( true == pInfoPosition->Empty() )										///< 该数据表索引信息不存在
+		if( true == pInfoPosition->IsNull() )										///< 该数据表索引信息不存在
 		{
 			::printf( "MemDatabase::QueryTable() : 2 invalid BindID, subscript out of range of memo-tables list, BindID=%u\n", nBindID );
 			return NULL;
 		}
 
-		return &m_arrayQuotationTables[pInfoPosition->nRecordPos];					///< 返回对应的数据表
+		return &m_arrayQuotationTables[pInfoPosition->nDataPos];					///< 返回对应的数据表
 	}
 	catch( std::exception& err )
 	{
@@ -167,7 +168,7 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 		}
 
 		int						nDataLen = fileMeta.Read( m_pQueryBuffer, MAX_QUERY_BUFFER_LEN );
-		for( unsigned int nOffset = 0; nOffset < nDataLen; nOffset++ )
+		for( int nOffset = 0; nOffset < nDataLen; nOffset++ )
 		{
 			if( ',' == m_pQueryBuffer[nOffset] )
 			{

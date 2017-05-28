@@ -52,9 +52,6 @@ protected:
 };
 
 
-typedef CollisionHash<unsigned __int64>		TRecordHash;	///< 哈希表(key,index of array)
-
-
 /**
  * @class									DynamicTable
  * @brief									变长记录表
@@ -168,7 +165,7 @@ private:
 	TableMeta								m_oTableMeta;			///< 数据表元信息
 	CriticalObject							m_oCSLock;				///< 内存表锁
 private:
-	TRecordHash								m_oHashTableOfIndex;	///< 对商品主键值作哈稀
+	CollisionHash							m_oHashTableOfIndex;	///< 对商品主键值作哈稀
 	char*									m_pRecordsBuffer;		///< 记录集缓存
 	unsigned int							m_nMaxBufferSize;		///< 记录集缓存最大长度
 	unsigned int							m_nCurrentDataSize;		///< 当前有效数据的长度

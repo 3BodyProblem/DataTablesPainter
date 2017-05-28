@@ -159,14 +159,14 @@ RecordBlock DynamicTable::SelectRecord( char* pKeyStr, unsigned int nKeyLen )
 		DyncRecord				objRecord( pKeyStr, nKeyLen );
 		__int64					nDataSeqKey = objRecord.GetMainKey();
 		CriticalLock			lock( m_oCSLock );
-		T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
+		struct T_ListNode*		pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
 
 		if( NULL == pRecordPostion )
 		{
 			return RecordBlock( NULL, 0 );
 		}
 
-		unsigned int			nRecordOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
+		unsigned int			nRecordOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nDataPos;
 		if( m_oTableMeta.m_nRecordWidth > (m_nMaxBufferSize-nRecordOffset) )	///< 是否有足够的后续长度( 需要大于等于DataBlockSize)
 		{
 			::printf( "DynamicTable::SelectRecord() : subscript out of range of memo-tables list\n" );
@@ -200,7 +200,7 @@ int DynamicTable::DeleteRecord( char* pKeyStr, unsigned int nKeyLen, unsigned __
 		DyncRecord				objRecord( pKeyStr, nKeyLen );
 		__int64					nDataSeqKey = objRecord.GetMainKey();
 		CriticalLock			lock( m_oCSLock );
-		T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
+		struct T_ListNode*		pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
 
 		nDbSerialNo = GlobalSequenceNo::GetObj().GetSeqNo();
 		if( NULL == pRecordPostion )
@@ -208,18 +208,17 @@ int DynamicTable::DeleteRecord( char* pKeyStr, unsigned int nKeyLen, unsigned __
 			return 0;
 		}
 
-		unsigned int			nRecordOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
+		unsigned int			nRecordOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nDataPos;
+		unsigned int			nNextRecordPos = nRecordOffset + m_oTableMeta.m_nRecordWidth;
 		if( m_oTableMeta.m_nRecordWidth > (m_nMaxBufferSize-nRecordOffset) )	///< 是否有足够的后续长度( 需要大于等于DataBlockSize)
 		{
 			::printf( "DynamicTable::DeleteRecord() : subscript out of range of memo-tables list\n" );
 			return -2;
 		}
 
-		unsigned int			nNextRecordPos = nRecordOffset + m_oTableMeta.m_nRecordWidth;
-
 		if( 0 != ::memcmp( pKeyStr, m_pRecordsBuffer+nRecordOffset, ::strlen( pKeyStr ) ) )
 		{
-			::printf( "DynamicTable::DeleteRecord() : failed 2 locate record key, %s != %d\n", pKeyStr, m_pRecordsBuffer+nRecordOffset );
+			::printf( "DynamicTable::DeleteRecord() : failed 2 locate record key, %s != %s\n", pKeyStr, m_pRecordsBuffer+nRecordOffset );
 			return -3;
 		}
 
@@ -253,7 +252,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 {
 	try
 	{
-		T_RECORD_POS*			pRecordPostion = NULL;
+		struct T_ListNode*		pRecordPostion = NULL;
 		CriticalLock			lock( m_oCSLock );
 		DyncRecord				objRecord( pRecord, nRecordLen );
 		__int64					nDataSeqKey = objRecord.GetMainKey();
@@ -268,7 +267,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 		}
 
 		int		nInsertAffect = m_oHashTableOfIndex.NewKey( nDataSeqKey
-				, T_RECORD_POS( m_nCurrentDataSize/m_oTableMeta.m_nRecordWidth, (nDbSerialNo=GlobalSequenceNo::GetObj().GenerateSeq()) ) );
+				, m_nCurrentDataSize/m_oTableMeta.m_nRecordWidth, (nDbSerialNo=GlobalSequenceNo::GetObj().GenerateSeq()) );
 		if( nInsertAffect < 0 )	///< 新增记录:	位置为, 第 0 个索引位置
 		{	///< 记录不存在，新增成功的情况
 			::printf( "DynamicTable::InsertRecord() : failed 2 insert data 2 hash table.\n" );
@@ -284,7 +283,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 			return -3;
 		}
 
-		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
+		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * pRecordPostion->nDataPos;
 		if( m_oTableMeta.m_nRecordWidth > (m_nMaxBufferSize-nDataOffsetIndex) )	///< 是否有足够的后续长度( 需要大于等于DataBlockSize)
 		{
 			::printf( "DynamicTable::InsertRecord() : subscript out of range of memo-tables list\n" );
@@ -293,7 +292,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 
 		DyncRecord				oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
 
-		if( true == pRecordPostion->Empty() )
+		if( true == pRecordPostion->IsNull() )
 		{
 			::printf( "DynamicTable::InsertRecord() : invalid MainKey, cannot locate record in table\n" );
 			return -5;
@@ -329,7 +328,7 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned
 	try
 	{
 		int						nAffectNum = 0;
-		T_RECORD_POS*			pRecordPostion = NULL;
+		struct T_ListNode*		pRecordPostion = NULL;
 		CriticalLock			lock( m_oCSLock );
 		DyncRecord				objRecord( pRecord, nRecordLen );
 		__int64					nDataSeqKey = objRecord.GetMainKey();
@@ -347,10 +346,10 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned
 			return 0;
 		}
 
-		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
+		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * pRecordPostion->nDataPos;
 		DyncRecord				oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
 
-		if( true == pRecordPostion->Empty() )	{
+		if( true == pRecordPostion->IsNull() )	{
 			return 0;
 		}
 
@@ -385,7 +384,7 @@ int DynamicTable::CopyToBuffer( char* pBuffer, unsigned int nBufferSize, unsigne
 {
 	try
 	{
-		CriticalLock			lock( m_oCSLock );
+		CriticalLock				lock( m_oCSLock );
 
 		if( m_nCurrentDataSize >= nBufferSize )
 		{
@@ -401,16 +400,16 @@ int DynamicTable::CopyToBuffer( char* pBuffer, unsigned int nBufferSize, unsigne
 		}
 		else
 		{
-			unsigned int		nRecordsSize = 0;
-			unsigned int		nCount = m_oHashTableOfIndex.Size();
+			unsigned int			nRecordsSize = 0;
+			unsigned int			nCount = m_nCurrentDataSize / m_oTableMeta.m_nRecordWidth;
 
 			for( unsigned int n = 0; n < nCount; n++ )
 			{
-				T_RECORD_POS*			pRecordPostion = m_oHashTableOfIndex.Index( n );
+				struct T_ListNode*	pRecordPostion = NULL;//m_oHashTableOfIndex.Index( n );
 
 				if( NULL != pRecordPostion )
 				{
-					unsigned int	nOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nRecordPos;
+					unsigned int	nOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nDataPos;
 
 					::memcpy( pBuffer+nRecordsSize, m_pRecordsBuffer+nOffset, m_oTableMeta.m_nRecordWidth );
 					nRecordsSize += m_oTableMeta.m_nRecordWidth;

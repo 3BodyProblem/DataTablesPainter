@@ -44,16 +44,16 @@ void TestTableOperation::SetUp()
 	{
 		m_vctNameTable.push_back( T_Message_NameTable( "SR1441930", "某种商品名称", 10, 12, 1, 60 ) );
 		m_vctNameTable.push_back( T_Message_NameTable( "600000", "上海市场", 12, 0, 1, 2 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "m075-C-3000", "中文商品名称", 8, 6, 1, 7 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "M075-P-9000", "某种商品名称", 1, 8, 8, 2 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "IH075-C-3000", "商品名称3", 2, 5, 3, 555 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "SR001930", "中文商品名称4", 3, 3, 0, 100 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "1m075-C-3000", "中文商品名称", 8, 6, 1, 7 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "8M075-P-9000", "某种商品名称", 1, 8, 8, 2 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "6IH075-C-3000", "商品名称3", 2, 5, 3, 555 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "1SR001930", "中文商品名称4", 3, 3, 0, 100 ) );
 		m_vctNameTable.push_back( T_Message_NameTable( "SR231930", "中文商品名称6", 6, 321, 2, 9 ) );
 		m_vctNameTable.push_back( T_Message_NameTable( "aR441930", "a某种商品名称", 10, 12, 1, 60 ) );
 		m_vctNameTable.push_back( T_Message_NameTable( "b00000", "b上海市场", 12, 0, 1, 2 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "c075-C-3000", "c中文商品名称", 8, 6, 1, 7 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "d075-P-9000", "d某种商品名称", 1, 8, 8, 2 ) );
-		m_vctNameTable.push_back( T_Message_NameTable( "e075-C-3000", "e商品名称3", 2, 5, 3, 555 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "1c075-C-3000", "c中文商品名称", 8, 6, 1, 7 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "3d075-P-9000", "d某种商品名称", 1, 8, 8, 2 ) );
+		m_vctNameTable.push_back( T_Message_NameTable( "9e075-C-3000", "e商品名称3", 2, 5, 3, 555 ) );
 		m_vctNameTable.push_back( T_Message_NameTable( "f101930", "f中文商品名称4", 3, 3, 0, 100 ) );
 		m_vctNameTable.push_back( T_Message_NameTable( "g131930", "g中文商品名称6", 6, 321, 2, 9 ) );
 	}
@@ -76,6 +76,17 @@ void TestTableOperation::SetUp()
 			unsigned int	nLow = nNow - 100 * i;
 
 			::sprintf( pszCode, "UFO%u-AP-100", i );
+			m_vctSnapTable.push_back( T_Message_SnapTable( pszCode, nNow, nHigh, nLow, nNow*123342.102, nNow*1024 ) );
+		}
+
+		for( unsigned int j = 1; j <= 1024*2; j++ )
+		{
+			char			pszCode[32] = { 0 };
+			unsigned int	nNow = (j+1) * 1024;
+			unsigned int	nHigh = nNow + 100 * j;
+			unsigned int	nLow = nNow - 100 * j;
+
+			::sprintf( pszCode, "%u-C-A100", 10000 + j );
 			m_vctSnapTable.push_back( T_Message_SnapTable( pszCode, nNow, nHigh, nLow, nNow*123342.102, nNow*1024 ) );
 		}
 	}
@@ -659,14 +670,13 @@ TEST_F( TestTableOperation, InsertOneRecordAndDelete )
 ///< ------------------ 测试全部记录的插入+落盘+读盘测试 ----------------------------------------
 TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 {
-	unsigned int	nMkListSize = m_vctMarketInfo.size();
-	unsigned int	nNameTableSize = m_vctNameTable.size();
-	unsigned int	nSnapTableSize = m_vctSnapTable.size();
+	bool	bIsExistInsert = false;
+	int		nMkListSize = m_vctMarketInfo.size();
+	int		nNameTableSize = m_vctNameTable.size();
+	int		nSnapTableSize = m_vctSnapTable.size();
 
 	for( int n = 0; n < m_nMaxLoopNum*2; n++ )
 	{
-		bool	bIsExistInsert = false;
-
 		bIsExistInsert = n>=nMkListSize?true:false;
 		TestLocateMarketInfo();TestInsertMarketInfo( n, bIsExistInsert );TestSelectMarketInfo( n, true );
 		bIsExistInsert = n>=nNameTableSize?true:false;
@@ -677,8 +687,6 @@ TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 
 	for( int m = 0; m < m_nMaxLoopNum*2; m++ )
 	{
-		bool	bIsExistInsert = false;
-
 		bIsExistInsert = m<nMkListSize?true:false;
 		TestLocateMarketInfo();TestDeleteMarketInfo( m, bIsExistInsert );TestSelectMarketInfo( m, false );
 		bIsExistInsert = m<nNameTableSize?true:false;
@@ -689,8 +697,6 @@ TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 
 	for( int nn = 0; nn < m_nMaxLoopNum*2; nn++ )
 	{
-		bool	bIsExistInsert = false;
-
 		bIsExistInsert = nn>=nMkListSize?true:false;
 		TestLocateMarketInfo();TestInsertMarketInfo( nn, bIsExistInsert );TestSelectMarketInfo( nn, true );
 		bIsExistInsert = nn>=nNameTableSize?true:false;
@@ -749,7 +755,7 @@ TEST_F( TestTableOperation, DeleteSomeRecord )
 
 	TestLocateNameTable();TestDeleteNameTable( 1, true );TestSelectNameTable( 1, false );
 	TestLocateNameTable();TestDeleteNameTable( 5, true );TestSelectNameTable( 5, false );
-	for( int a = 0 ; a < 10; a++ )
+	for( int a = 0; a < 10; a++ )
 	{
 		TestDeleteNameTable( 1, false );TestSelectNameTable( 1, false );
 		TestDeleteNameTable( 5, false );TestSelectNameTable( 5, false );
