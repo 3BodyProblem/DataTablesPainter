@@ -405,14 +405,19 @@ int DynamicTable::CopyToBuffer( char* pBuffer, unsigned int nBufferSize, unsigne
 
 			for( unsigned int n = 0; n < nCount; n++ )
 			{
-				struct T_ListNode*	pRecordPostion = NULL;//m_oHashTableOfIndex.Index( n );
+				int					nOffset = nCount * m_oTableMeta.m_nRecordWidth;
+				char*				pszMainKey = m_pRecordsBuffer + nOffset;
+				DyncRecord			objRecord( pszMainKey, 32 );
+				__int64				nDataSeqKey = objRecord.GetMainKey();
+				struct T_ListNode*	pRecordPostion = m_oHashTableOfIndex[nDataSeqKey];
 
 				if( NULL != pRecordPostion )
 				{
-					unsigned int	nOffset = m_oTableMeta.m_nRecordWidth * pRecordPostion->nDataPos;
-
-					::memcpy( pBuffer+nRecordsSize, m_pRecordsBuffer+nOffset, m_oTableMeta.m_nRecordWidth );
-					nRecordsSize += m_oTableMeta.m_nRecordWidth;
+					if( nDbSerialNo < pRecordPostion->nUpdateSequence )
+					{
+						::memcpy( pBuffer+nRecordsSize, m_pRecordsBuffer+nOffset, m_oTableMeta.m_nRecordWidth );
+						nRecordsSize += m_oTableMeta.m_nRecordWidth;
+					}
 				}
 			}
 

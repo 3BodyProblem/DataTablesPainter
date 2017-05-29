@@ -50,6 +50,7 @@ public:
 	unsigned int					Length() const;
 
 protected:
+	char							m_pszDataBlock[1024];			///< 数据块
 	char*							m_pRecordData;					///< 数据结构地址
 	unsigned int					m_nRecordLen;					///< 数据结构长度
 };

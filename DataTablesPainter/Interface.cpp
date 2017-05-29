@@ -69,7 +69,7 @@ int RecordBlock::CloneFrom( const RecordBlock& refRecord )
 
 	if( 0 != ::memcmp( m_pRecordData, refRecord.GetPtr(), refRecord.Length() ) )
 	{
-		memcpy( m_pRecordData, refRecord.GetPtr(), refRecord.Length() );
+		::memcpy( m_pRecordData, refRecord.GetPtr(), refRecord.Length() );
 
 		return 1;
 	}

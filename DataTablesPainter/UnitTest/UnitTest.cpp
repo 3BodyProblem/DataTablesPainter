@@ -444,6 +444,7 @@ TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 		TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
 	}
 
+	///< 顺着删除全部记录
 	for( int m = 0; m < m_nMaxLoopNum*2; m++ )
 	{
 		bIsExistInsert = m<nMkListSize?true:false;
@@ -452,6 +453,30 @@ TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 		TestLocateNameTable();TestDeleteNameTable( m, bIsExistInsert );TestSelectNameTable( m, false );
 		bIsExistInsert = m<nSnapTableSize?true:false;
 		TestLocateSnapTable();TestDeleteSnapTable( m, bIsExistInsert );TestSelectSnapTable( m, false );
+	}
+
+	for( int nn = 0; nn < m_nMaxLoopNum*2; nn++ )
+	{
+		bIsExistInsert = nn>=nMkListSize?true:false;
+		TestLocateMarketInfo();TestInsertMarketInfo( nn, bIsExistInsert );TestSelectMarketInfo( nn, true );
+		bIsExistInsert = nn>=nNameTableSize?true:false;
+		TestLocateNameTable();TestInsertNameTable( nn, bIsExistInsert );TestSelectNameTable( nn, true );
+		bIsExistInsert = nn>=nSnapTableSize?true:false;
+		TestLocateSnapTable();TestInsertSnapTable( nn, bIsExistInsert );TestSelectSnapTable( nn, true );
+	}
+
+	///< 倒着删除全部记录
+	for( int a = nMkListSize - 1; a >= 0; a-- )
+	{
+		TestLocateMarketInfo();TestDeleteMarketInfo( a, bIsExistInsert );TestSelectMarketInfo( a, false );
+	}
+	for( int b = nNameTableSize - 1; b >= 0; b-- )
+	{
+		TestLocateNameTable();TestDeleteNameTable( b, bIsExistInsert );TestSelectNameTable( b, false );
+	}
+	for( int c = nSnapTableSize - 1; c >= 0; c-- )
+	{
+		TestLocateSnapTable();TestDeleteSnapTable( c, bIsExistInsert );TestSelectSnapTable( c, false );
 	}
 
 	for( int nn = 0; nn < m_nMaxLoopNum*2; nn++ )
