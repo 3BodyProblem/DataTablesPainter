@@ -154,7 +154,7 @@ public:
 	/**
 	 * @brief						从硬盘恢复所有数据
 	 */
-	virtual bool					LoadFromDisk( const char* pszDataFile ) = 0;
+	virtual int						LoadFromDisk( const char* pszDataFile ) = 0;
 
 	/**
 	 * @brief						将所有数据存盘

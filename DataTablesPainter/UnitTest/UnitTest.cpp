@@ -400,7 +400,7 @@ TEST_F( TestTableOperation, DumpEmptyTablesAndLoad )
 	::system( "del /f/s/q .\\DataRecover\\*" );
 
 	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), false );
-	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), false );
+	ASSERT_LT( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), 0 );
 
 	for( int n = 0; n < 2; n++ )
 	{
@@ -502,7 +502,7 @@ TEST_F( TestTableOperation, DumpAllDataAndLoadAfterInsertAllRecords )
 	}
 
 	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), true );
-	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), true );
+	ASSERT_GT( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), 0 );
 
 	///< 重载后全部记录校验
 	for( int n = 0; n < m_nMaxLoopNum; n++ )
@@ -594,7 +594,7 @@ TEST_F( TestTableOperation, DeleteSomeRecordWithUpdate )
 TEST_F( TestTableOperation, DumpAllDataAndLoadAfterDeleteSomeRecords )
 {
 	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), true );
-	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), true );
+	ASSERT_GT( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), 0 );
 
 	TestLocateMarketInfo();
 	for( int n = 0; n < m_nMaxLoopNum; n++ )

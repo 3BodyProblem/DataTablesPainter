@@ -167,7 +167,7 @@ bool MemDatabase::GetTableMetaByPos( unsigned int nPos, unsigned int& nDataID, u
 	return true;
 }
 
-bool MemDatabase::LoadFromDisk( const char* pszDataFile )
+int MemDatabase::LoadFromDisk( const char* pszDataFile )
 {
 	try
 	{
@@ -178,13 +178,13 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 		GlobalSequenceNo::GetObj().Reset();				///< 重置自增流水号
 		if( 0 != (nErrorCode=DeleteTables()) )	{
 			::printf( "MemDatabase::LoadFromDisk() : failed 2 clean all tables in mem-database \n", nErrorCode );
-			return false;
+			return -1;
 		}
 
 		MemoDumper<char>		fileMeta( true, JoinPath( pszDataFile, "meta.dump" ).c_str(), 0 );
 		if( false == fileMeta.IsOpen() )	{
 			::printf( "MemDatabase::LoadFromDisk() : failed 2 load meta info. \n" );
-			return false;
+			return -2;
 		}
 
 		int						nDataLen = fileMeta.Read( m_pQueryBuffer, MAX_QUERY_BUFFER_LEN );
@@ -202,12 +202,12 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 
 				if( false == fileDump.IsOpen() )	{
 					::printf( "MemDatabase::LoadFromDisk() : failed 2 load dump file, %s \n", sFileName.c_str() );
-					return false;
+					return -3;
 				}
 
 				if( fileDump.Read( (char*)&nRecordWidth, sizeof(nRecordWidth) ) < 0 )	{
 					::printf( "MemDatabase::LoadFromDisk() : failed 2 read dump file \n" );
-					return false;
+					return -4;
 				}
 
 				for( int n = 0; true; n++ )
@@ -220,20 +220,20 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 						if( false == CreateTable( nDataID, nRecordWidth, 32 ) )
 						{
 							::printf( "MemDatabase::LoadFromDisk() : failed 2 create table, table id = %d\n", nDataID );
-							return false;
+							return -6;
 						}
 					}
 
 					if( NULL == (pTable = QueryTable( nDataID )) )
 					{
 						::printf( "MemDatabase::LoadFromDisk() : failed 2 query table, table id = %d\n", nDataID );
-						return false;
+						return -7;
 					}
 
 					if( 0 > pTable->InsertRecord( pszRecord, nRecordWidth, nSerialNo ) )
 					{
 						::printf( "MemDatabase::LoadFromDisk() : failed 2 insert into table, table id = %d\n", nDataID );
-						return false;
+						return -8;
 					}
 				}
 
@@ -241,7 +241,7 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 			}
 		}
 
-		return true;
+		return (int)fileMeta.GetTradingDay();
 	}
 	catch( std::exception& err )
 	{
@@ -252,7 +252,7 @@ bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 		::printf( "MemDatabase::LoadFromDisk() : unknow exception\n" );
 	}
 
-	return false;
+	return -10;
 }
 
 bool MemDatabase::SaveToDisk( const char* pszDataFile )
