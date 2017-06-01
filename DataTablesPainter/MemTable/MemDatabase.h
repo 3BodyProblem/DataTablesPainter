@@ -71,18 +71,29 @@ public:///< Method Of Interface
 	 */
 	unsigned __int64			GetUpdateSequence();
 
+	/**
+	 * @brief					取得数据表的数量
+	 * @return					返回统计值
+	 */
+	unsigned int				GetTableCount();
+
+	/**
+	 * @brief					根据位置索引取得数据表元信息
+	 * @param[in]				想获取数据表的位置
+	 * @param[out]				nDataID				数据表ID
+	 * @param[out]				nRecordLen			数据表记录长度
+	 * @param[out]				nKeyStrLen			数据主键最大长度
+	 * @return					true				获取成功
+								false				获取出错
+	 */
+	bool						GetTableMetaByPos( unsigned int nPos, unsigned int& nDataID, unsigned int& nRecordLen, unsigned int& nKeyStrLen );
+
 public:
 	/**
 	 * @brief					根据顺序索引值，取得数据表引用
 	 * @return					NULL			无效的索引值会返回null
 	 */
 	I_Table*					operator[]( unsigned int nTableIndex );
-
-	/**
-	 * @brief					取得数据表的数量
-	 * @return					返回统计值
-	 */
-	unsigned int				GetTableCount();
 
 private:
 	CriticalObject				m_oCSLock;									///< 内存表锁

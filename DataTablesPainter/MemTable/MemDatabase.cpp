@@ -149,6 +149,24 @@ unsigned int MemDatabase::GetTableCount()
 	return m_nUsedTableNum;
 }
 
+bool MemDatabase::GetTableMetaByPos( unsigned int nPos, unsigned int& nDataID, unsigned int& nRecordLen, unsigned int& nKeyStrLen )
+{
+	CriticalLock	lock( m_oCSLock );
+	DynamicTable*	pTable = (DynamicTable*)(*this)[nPos];
+
+	if( NULL == pTable )
+	{
+		::printf( "MemDatabase::GetTableMetaByPos() : failed 2 fetch table by postion = %d \n", nPos );
+		return false;
+	}
+
+	nDataID = pTable->GetMeta().m_nBindID;
+	nRecordLen = pTable->GetMeta().m_nRecordWidth;
+	nKeyStrLen = pTable->GetMeta().m_nKeyStrLen;
+
+	return true;
+}
+
 bool MemDatabase::LoadFromDisk( const char* pszDataFile )
 {
 	try
