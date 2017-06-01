@@ -153,6 +153,8 @@ public:
 
 	/**
 	 * @brief						从硬盘恢复所有数据
+	 * @return						>0					数据库加载落盘文件日期
+									<0					出错
 	 */
 	virtual int						LoadFromDisk( const char* pszDataFile ) = 0;
 
