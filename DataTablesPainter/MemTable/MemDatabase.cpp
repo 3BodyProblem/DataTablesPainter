@@ -273,7 +273,7 @@ bool MemDatabase::SaveToDisk( const char* pszDataFile )
 			char					pszTmpFileName[64] = { 0 };
 			int						nDataSize = pTable->CopyToBuffer( m_pQueryBuffer, MAX_QUERY_BUFFER_LEN, nSerialNo );
 
-			if( 0 >= nDataSize || NULL == pTable )
+			if( 0 > nDataSize || NULL == pTable )
 			{
 				::printf( "MemDatabase::SaveToDisk() : failed 2 copy table data, datasize=%d, table addr=%x \n", nDataSize, pTable );
 				return false;
