@@ -266,6 +266,12 @@ bool MemDatabase::SaveToDisk( const char* pszDataFile )
 			return false;
 		}
 
+		if( 0 == GetTableCount() )
+		{
+			::printf( "MemDatabase::SaveToDisk() : database is empty. \n" );
+			return false;
+		}
+
 		for( unsigned int n = 0; n < GetTableCount(); n++ )
 		{
 			unsigned __int64		nSerialNo = 0;

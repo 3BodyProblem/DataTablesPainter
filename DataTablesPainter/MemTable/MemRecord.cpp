@@ -77,7 +77,9 @@ __int64 CodeKey::GenHashKey( const char* pszCode, unsigned int nCodeLen )
 
 	if( nCodeKey < 0 )
 	{
-		throw std::runtime_error( "CodeKey::GenHashKey() : invalid hash key..." );
+		char	pszTmp[512] = { 0 };
+		::sprintf( pszTmp, "CodeKey::GenHashKey() : invalid hash key [%I64d] from code [%s] ...", nCodeKey, pszCode );
+		throw std::runtime_error( pszTmp );
 	}
 
 	return nCodeKey;

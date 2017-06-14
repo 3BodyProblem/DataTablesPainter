@@ -399,6 +399,7 @@ TEST_F( TestTableOperation, DumpEmptyTablesAndLoad )
 	::Sleep( 3000 );
 	::system( "del /f/s/q .\\DataRecover\\*" );
 
+	TestDeleteAllTables();
 	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), false );
 	ASSERT_LT( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), 0 );
 
