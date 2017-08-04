@@ -39,6 +39,7 @@ int MemDatabase::DeleteTables()
 
 		std::for_each( m_arrayQuotationTables, m_arrayQuotationTables+MAX_TABBLE_NO, std::mem_fun_ref(&DynamicTable::Release) );
 
+		m_setTableID.clear();					///< 数据表ID记录集清空
 		m_nUsedTableNum = 0;					///< 引用归零
 		m_HashTableOfPostion.Clear();			///< 哈稀表归零
 
@@ -54,6 +55,56 @@ int MemDatabase::DeleteTables()
 		::printf( "MemDatabase::DeleteTables() : unknow exception\n" );
 		return -2;
 	}
+}
+
+bool MemDatabase::DeleteTable( unsigned int nBindID )
+{
+	try
+	{
+		int						nResult = -1;
+		CriticalLock			lock( m_oCSLock );
+		struct T_ListNode*		pInfoPosition = m_HashTableOfPostion[nBindID];	///< 取得哈稀索引信息
+
+		if( NULL == pInfoPosition )
+		{
+			::printf( "MemDatabase::DeleteTable() : 1 invalid BindID, subscript out of range of memo-tables list, BindID=%u\n", nBindID );
+			return NULL;
+		}
+
+		if( true == pInfoPosition->IsNull() )									///< 该数据表索引信息不存在
+		{
+			::printf( "MemDatabase::DeleteTable() : 2 invalid BindID, subscript out of range of memo-tables list, BindID=%u\n", nBindID );
+			return NULL;
+		}
+
+		if( (nResult=m_HashTableOfPostion.DeleteKey( nBindID )) > 0 )			///< 删除哈稀表里的这个表
+		{
+			DynamicTable*				pDynTable = &m_arrayQuotationTables[pInfoPosition->nDataPos];
+
+			m_setTableID.erase( nBindID );
+/*			if( NULL != pDynTable )
+			{
+				pDynTable->Release();											///< 释放数据表对应的分配空间
+			}*/
+		}
+
+		if( nResult > 0 )
+		{
+			::printf( "MemDatabase::DeleteTable() : TableID(%u) Deleted!, errorcode=%d\n", nBindID, nResult );
+		}
+
+		return (nResult >= 0) ? true : false;
+	}
+	catch( std::exception& err )
+	{
+		::printf( "MemDatabase::DeleteTable() : exception : %s\n", err.what() );
+	}
+	catch( ... )
+	{
+		::printf( "MemDatabase::DeleteTable() : unknow exception\n" );
+	}
+
+	return false;
 }
 
 bool MemDatabase::CreateTable( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen )
@@ -78,8 +129,14 @@ bool MemDatabase::CreateTable( unsigned int nBindID, unsigned int nRecordWidth, 
 				return false;
 			}
 
+			m_setTableID.insert( nBindID );			///< 加入新增的表ID
 			m_arrayQuotationTables[m_nUsedTableNum].Initialize( DynamicTable::TableMeta(nBindID,nRecordWidth,nKeyStrLen) );
 			++m_nUsedTableNum;													///< 引用计算加一
+		}
+
+		if( nResult > 0 )
+		{
+			::printf( "MemDatabase::CreateTable() : TableID(%u) Created!, errorcode=%d\n", nBindID, nResult );
 		}
 
 		return (nResult >= 0) ? true : false;
@@ -146,7 +203,7 @@ unsigned int MemDatabase::GetTableCount()
 {
 	CriticalLock	lock( m_oCSLock );
 
-	return m_nUsedTableNum;
+	return m_setTableID.size();
 }
 
 bool MemDatabase::GetTableMetaByPos( unsigned int nPos, unsigned int& nDataID, unsigned int& nRecordLen, unsigned int& nKeyStrLen )
@@ -272,11 +329,11 @@ bool MemDatabase::SaveToDisk( const char* pszDataFile )
 			return false;
 		}
 
-		for( unsigned int n = 0; n < GetTableCount(); n++ )
+		for( std::set<unsigned int>::iterator it = m_setTableID.begin(); it != m_setTableID.end(); it++ )
 		{
 			unsigned __int64		nSerialNo = 0;
-			DynamicTable*			pTable = (DynamicTable*)(*this)[n];
 			char					pszTmpFileName[64] = { 0 };
+			DynamicTable*			pTable = (DynamicTable*)QueryTable( *it );
 			int						nDataSize = pTable->CopyToBuffer( m_pQueryBuffer, MAX_QUERY_BUFFER_LEN, nSerialNo );
 
 			if( 0 > nDataSize || NULL == pTable )
@@ -304,11 +361,12 @@ bool MemDatabase::SaveToDisk( const char* pszDataFile )
 
 		MemoDumper<char>		fileMeta( false, JoinPath( pszDataFile, "meta.dump" ).c_str(), DateTime::Now().DateToLong() );
 
-		for( unsigned int i = 0; i < GetTableCount(); i++ )
+		for( std::set<unsigned int>::iterator it = m_setTableID.begin(); it != m_setTableID.end(); it++ )
 		{
-			char				pszDataID[64] = { 0 };
+			char					pszDataID[64] = { 0 };
+			DynamicTable*			pTable = (DynamicTable*)QueryTable( *it );
 
-			::sprintf( pszDataID, "%d,", ((DynamicTable*)(*this)[i])->GetMeta().m_nBindID );
+			::sprintf( pszDataID, "%d,", pTable->GetMeta().m_nBindID );
 			fileMeta.Write( pszDataID, ::strlen(pszDataID) );
 		}
 

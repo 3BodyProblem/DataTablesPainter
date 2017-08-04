@@ -92,7 +92,11 @@ void DynamicTable::Release()
 	m_nCurrentDataSize = 0;
 	m_oTableMeta.Clear();
 	m_oHashTableOfIndex.Clear();
-	::memset( m_pRecordsBuffer, 0, m_nMaxBufferSize );
+
+	if( NULL != m_pRecordsBuffer )
+	{
+		::memset( m_pRecordsBuffer, 0, m_nMaxBufferSize );
+	}
 }
 
 DynamicTable::TableMeta DynamicTable::GetMeta()

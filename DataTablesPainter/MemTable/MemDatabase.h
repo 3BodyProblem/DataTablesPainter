@@ -2,6 +2,7 @@
 #define	__MEM_TABLE__MEM_DATABASE_H__
 
 
+#include <set>
 #include <vector>
 #include "MemTable.h"
 #include "../Interface.h"
@@ -11,7 +12,7 @@ namespace MemoryCollection
 {
 
 
-const unsigned int			MAX_TABBLE_NO = 32;				///< 最多可分配的数据表的数量
+const unsigned int			MAX_TABBLE_NO = 64;				///< 最多可分配的数据表的数量
 
 
 /**
@@ -35,11 +36,16 @@ public:///< Method Of Interface
 	 * @param[in]				nBindID				数据类形标识号
 	 * @param[in]				nRecordWidth		数据长度
 	 * @param[in]				nKeyStrLen			主键长度
-	 * @return					=0					配置成功
-								>0					忽略（成功）
-								<0					配置出错
+	 * @return					true				配置成功
 	 */
 	bool						CreateTable( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen );
+
+	/**
+	 * @brief					删除指定的数据表
+	 * @param[in]				nBindID				数据表ID
+	 * @return					true				删除成功
+	 */
+	bool						DeleteTable( unsigned int nBindID );
 
 	/**
 	 * @brief					根据MessageID取得已经存在的或者分配一个新的内存表的引用
@@ -101,7 +107,8 @@ private:
 	CriticalObject				m_oCSLock;									///< 内存表锁
 	CollisionHash				m_HashTableOfPostion;						///< 哈稀表,msgid所在的数据选择类型
 	DynamicTable				m_arrayQuotationTables[MAX_TABBLE_NO];		///< 行情动态表集合
-	unsigned int				m_nUsedTableNum;							///< 已经使用珠数据表数量
+	unsigned int				m_nUsedTableNum;							///< 已经使用的数据表数组的数量
+	std::set<unsigned int>		m_setTableID;								///< 数据表ID集合
 private:
 	char*						m_pQueryBuffer;								///< 数据查询缓存
 };

@@ -10,6 +10,7 @@ CollisionHash::CollisionHash()
 void CollisionHash::Clear()
 {
 	m_nUsedNumOfCollisionBucket = 0;
+
 	std::for_each( m_BucketOfHash, m_BucketOfHash+MAX_BUCKET_SIZE, std::mem_fun_ref(&T_ListNode::Clear) );
 	std::for_each( m_CollisionBucket, m_CollisionBucket+MAX_DATATABLE_NUM, std::mem_fun_ref(&T_ListNode::Clear) );
 }

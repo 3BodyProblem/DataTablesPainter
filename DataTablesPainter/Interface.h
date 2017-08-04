@@ -138,6 +138,13 @@ public:
 	virtual bool					CreateTable( unsigned int nBindID, unsigned int nRecordWidth, unsigned int nKeyStrLen ) = 0;
 
 	/**
+	 * @brief						删除指定的数据表
+	 * @param[in]					nBindID				数据表ID
+	 * @return						true				删除成功
+	 */
+	virtual bool					DeleteTable( unsigned int nBindID ) = 0;
+
+	/**
 	 * @brief						根据MessageID取得已经存在的或者分配一个新的内存表的引用
 	 * @detail						本函数对每个messageid维护一个唯一且对应的内存表，根据nBindID值返回已经存在的，或新建后返回
 	 * @param[in]					nBindID				MessageID

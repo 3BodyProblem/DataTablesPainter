@@ -114,6 +114,7 @@ protected:
 	void												TearDown();
 	void												TestCreateAllTable();
 	void												TestDeleteAllTables();
+	void												TestDeleteOneTable( unsigned int nTableID );
 
 protected:
 	I_Table*											m_pCurTablePtr;			///< 市场信息列表

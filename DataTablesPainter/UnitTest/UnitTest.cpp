@@ -382,6 +382,14 @@ void TestTableOperation::TestDeleteAllTables()
 	ASSERT_EQ( 0, UnitTestEnv::GetDatabasePtr()->DeleteTables() );
 }
 
+void TestTableOperation::TestDeleteOneTable( unsigned int nTableID )
+{
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->DeleteTable( nTableID ) );
+
+	I_Table*	pTable = UnitTestEnv::GetDatabasePtr()->QueryTable( nTableID );
+	ASSERT_EQ( NULL, pTable );
+}
+
 
 ///< ------------------------ 测试用例定义 ----------------------------------------------------
 ///< ------------------------ 测试用例定义 ----------------------------------------------------
@@ -666,6 +674,14 @@ TEST_F( TestTableOperation, CreateDeleteAllTablesTest )
 	TestCreateAllTable();
 	///< 创建所有数据表
 	TestCreateAllTable();
+	::printf( "test delete table operation ..........................................\n" );
+	TestLocateNameTable( true );
+	TestDeleteOneTable( T_Message_NameTable::GetID() );
+	TestLocateMarketInfo( true );
+	TestDeleteOneTable( T_Message_MarketInfo::GetID() );
+	TestLocateSnapTable( true );
+	TestDeleteOneTable( T_Message_SnapTable::GetID() );
+	::printf( "happy ending  ........................................................\n" );
 	///< 清空所有数据库
 	TestDeleteAllTables();
 	///< 随意定义一个不存在的数据表
