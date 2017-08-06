@@ -426,16 +426,89 @@ TEST_F( TestTableOperation, InsertOneRecordAndDelete )
 	TestDeleteMarketInfo( 0, true );TestSelectMarketInfo( 0, false );
 	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 
+	TestLocateMarketInfo( true );
+	TestDeleteOneTable( T_Message_MarketInfo::GetID() );
+	TestLocateMarketInfo( false );
+
 	TestLocateNameTable();TestInsertNameTable( 0 );TestSelectNameTable( 0, true );
 	TestDeleteNameTable( 0, true );TestSelectNameTable( 0, false );
 	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 
+	TestLocateNameTable( true );
+	TestDeleteOneTable( T_Message_NameTable::GetID() );
+	TestLocateNameTable( false );
+
 	TestLocateSnapTable();TestInsertSnapTable( 0 );TestSelectSnapTable( 0, true );
 	TestDeleteSnapTable( 0, true );TestSelectSnapTable( 0, false );
 	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
+
+	TestDeleteAllTables();
 }
 
-///< ------------------ 测试全部记录的插入+落盘+读盘测试 ----------------------------------------
+///< ----------------- 测试在重复建、删数据情况下的数据表各操作 -------------------------
+TEST_F( TestTableOperation, DeleteTableWithOperation )
+{
+	bool	bIsExistInsert = false;
+	int		nMkListSize = m_vctMarketInfo.size();
+	int		nNameTableSize = m_vctNameTable.size();
+	int		nSnapTableSize = m_vctSnapTable.size();
+
+	for( int n = 0; n < m_nMaxLoopNum*2; n++ )
+	{
+		bIsExistInsert = n>=nMkListSize?true:false;
+		TestLocateMarketInfo();TestInsertMarketInfo( n, bIsExistInsert );TestSelectMarketInfo( n, true );
+		bIsExistInsert = n>=nNameTableSize?true:false;
+		TestLocateNameTable();TestInsertNameTable( n, bIsExistInsert );TestSelectNameTable( n, true );
+		bIsExistInsert = n>=nSnapTableSize?true:false;
+		TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
+	}
+
+	TestLocateMarketInfo( true );
+	TestDeleteOneTable( T_Message_MarketInfo::GetID() );
+	TestLocateMarketInfo( false );
+
+	TestLocateNameTable();TestInsertNameTable( 0, true );TestSelectNameTable( 0, true );
+	unsigned int	nBeforeDeleteCount = ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount();
+	TestDeleteNameTable( 0, true );TestSelectNameTable( 0, false );
+	ASSERT_EQ( nBeforeDeleteCount-1, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
+
+	TestLocateSnapTable( true );
+	TestDeleteOneTable( T_Message_SnapTable::GetID() );
+	TestLocateSnapTable( false );
+
+	TestDeleteAllTables();
+	TestCreateAllTable();
+
+	for( int n = 0; n < m_nMaxLoopNum*2; n++ )
+	{
+		bIsExistInsert = n>=nMkListSize?true:false;
+		TestLocateMarketInfo();TestInsertMarketInfo( n, bIsExistInsert );TestSelectMarketInfo( n, true );
+		if( n < 21 ) {
+			bIsExistInsert = n>=nNameTableSize?true:false;
+			TestLocateNameTable();TestInsertNameTable( n, bIsExistInsert );TestSelectNameTable( n, true );
+			bIsExistInsert = n>=nSnapTableSize?true:false;
+			TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
+		}
+	}
+
+	TestLocateNameTable( true );
+	TestDeleteOneTable( T_Message_NameTable::GetID() );
+	TestLocateNameTable( false );
+
+	for( int n = 0; n < m_nMaxLoopNum*2; n++ )
+	{
+		TestLocateMarketInfo();TestInsertMarketInfo( n, true );TestSelectMarketInfo( n, true );
+		if( n < 21 ) {
+			TestLocateNameTable( false );
+		}
+		bIsExistInsert = (n>=nSnapTableSize)||(n<21)?true:false;
+		TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
+	}
+
+	TestDeleteAllTables();
+}
+
+///< ------------------ 测试全部记录的插入+落盘+读盘测试 ----------------------------------
 TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 {
 	bool	bIsExistInsert = false;
@@ -677,10 +750,13 @@ TEST_F( TestTableOperation, CreateDeleteAllTablesTest )
 	::printf( "test delete table operation ..........................................\n" );
 	TestLocateNameTable( true );
 	TestDeleteOneTable( T_Message_NameTable::GetID() );
+	TestLocateNameTable( false );
 	TestLocateMarketInfo( true );
 	TestDeleteOneTable( T_Message_MarketInfo::GetID() );
+	TestLocateMarketInfo( false );
 	TestLocateSnapTable( true );
 	TestDeleteOneTable( T_Message_SnapTable::GetID() );
+	TestLocateSnapTable( false );
 	::printf( "happy ending  ........................................................\n" );
 	///< 清空所有数据库
 	TestDeleteAllTables();

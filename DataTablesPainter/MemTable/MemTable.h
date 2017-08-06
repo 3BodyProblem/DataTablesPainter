@@ -92,6 +92,13 @@ public:
 	void									Release();
 
 	/**
+	 * @brief								将两个数据表对象进行交换
+	 * @param[in]							pTable					另一个数据表对象
+	 * @return								true					交换成功
+	 */
+	bool									SwapTableInSameArray( DynamicTable* pTable );
+
+	/**
 	 * @brief								取得数据表元信息
 	 */
 	TableMeta								GetMeta();

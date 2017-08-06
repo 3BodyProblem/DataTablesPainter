@@ -143,7 +143,7 @@ public:
 	void					SetUp();
 	void					TearDown();
 
-private:
+public:
 	static I_Database*		m_pIDatabase;		///< 进行压力操作的数据对象地址
 };
 

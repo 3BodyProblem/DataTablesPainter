@@ -127,6 +127,39 @@ void CollisionHash::CoordinateNodeIndex( struct T_ListNode* pNodeArray, unsigned
 	}
 }
 
+void CollisionHash::CoordinateNodePtr( int nOffset )
+{
+	for( int n = 0; n < MAX_BUCKET_SIZE; n++ )
+	{
+		T_ListNode&	refNode = m_BucketOfHash[n];
+
+		if( refNode.pNextNode )
+		{
+			refNode.pNextNode = (char*)(refNode.pNextNode) + nOffset;
+		}
+
+		if( refNode.pPrevNode )
+		{
+			refNode.pPrevNode = (char*)(refNode.pPrevNode) + nOffset;
+		}
+	}
+
+	for( int n = 0; n < MAX_DATATABLE_NUM; n++ )
+	{
+		T_ListNode& refNode = m_CollisionBucket[n];
+
+		if( refNode.pNextNode )
+		{
+			refNode.pNextNode = (char*)(refNode.pNextNode) + nOffset;
+		}
+
+		if( refNode.pPrevNode )
+		{
+			refNode.pPrevNode = (char*)(refNode.pPrevNode) + nOffset;
+		}
+	}
+}
+
 int CollisionHash::DeleteKey( unsigned __int64 nKey )
 {
 	struct T_ListNode*		pNode = m_BucketOfHash + (nKey % MAX_BUCKET_SIZE);

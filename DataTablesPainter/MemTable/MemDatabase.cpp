@@ -39,7 +39,6 @@ int MemDatabase::DeleteTables()
 
 		std::for_each( m_arrayQuotationTables, m_arrayQuotationTables+MAX_TABBLE_NO, std::mem_fun_ref(&DynamicTable::Release) );
 
-		m_setTableID.clear();					///< 数据表ID记录集清空
 		m_nUsedTableNum = 0;					///< 引用归零
 		m_HashTableOfPostion.Clear();			///< 哈稀表归零
 
@@ -77,18 +76,22 @@ bool MemDatabase::DeleteTable( unsigned int nBindID )
 			return NULL;
 		}
 
-		if( (nResult=m_HashTableOfPostion.DeleteKey( nBindID )) > 0 )			///< 删除哈稀表里的这个表
-		{
-			DynamicTable*				pDynTable = &m_arrayQuotationTables[pInfoPosition->nDataPos];
+		int						nPosInTable = pInfoPosition->nDataPos;
+		DynamicTable*			pDynTable = &m_arrayQuotationTables[pInfoPosition->nDataPos];
 
-			m_setTableID.erase( nBindID );
-/*			if( NULL != pDynTable )
-			{
-				pDynTable->Release();											///< 释放数据表对应的分配空间
-			}*/
+		if( NULL != pDynTable )
+		{
+			pDynTable->Release();												///< 释放数据表对应的分配空间
 		}
 
-		if( nResult > 0 )
+		for( int n = nPosInTable; n < m_nUsedTableNum-1; n++ )
+		{	///< 将释放数据表所在位置后的数据表前移一位
+			m_arrayQuotationTables[n].SwapTableInSameArray( m_arrayQuotationTables+(n+1) );
+		}
+
+		m_nUsedTableNum--;
+
+		if( (nResult = m_HashTableOfPostion.DeleteKey( nBindID )) > 0 )			///< 删除哈稀表里的这个表
 		{
 			::printf( "MemDatabase::DeleteTable() : TableID(%u) Deleted!, errorcode=%d\n", nBindID, nResult );
 		}
@@ -129,7 +132,6 @@ bool MemDatabase::CreateTable( unsigned int nBindID, unsigned int nRecordWidth, 
 				return false;
 			}
 
-			m_setTableID.insert( nBindID );			///< 加入新增的表ID
 			m_arrayQuotationTables[m_nUsedTableNum].Initialize( DynamicTable::TableMeta(nBindID,nRecordWidth,nKeyStrLen) );
 			++m_nUsedTableNum;													///< 引用计算加一
 		}
@@ -203,7 +205,7 @@ unsigned int MemDatabase::GetTableCount()
 {
 	CriticalLock	lock( m_oCSLock );
 
-	return m_setTableID.size();
+	return m_nUsedTableNum;
 }
 
 bool MemDatabase::GetTableMetaByPos( unsigned int nPos, unsigned int& nDataID, unsigned int& nRecordLen, unsigned int& nKeyStrLen )
@@ -329,11 +331,11 @@ bool MemDatabase::SaveToDisk( const char* pszDataFile )
 			return false;
 		}
 
-		for( std::set<unsigned int>::iterator it = m_setTableID.begin(); it != m_setTableID.end(); it++ )
+		for( unsigned int n = 0; n < m_nUsedTableNum; n++ )
 		{
 			unsigned __int64		nSerialNo = 0;
 			char					pszTmpFileName[64] = { 0 };
-			DynamicTable*			pTable = (DynamicTable*)QueryTable( *it );
+			DynamicTable*			pTable = m_arrayQuotationTables + n;
 			int						nDataSize = pTable->CopyToBuffer( m_pQueryBuffer, MAX_QUERY_BUFFER_LEN, nSerialNo );
 
 			if( 0 > nDataSize || NULL == pTable )
@@ -361,10 +363,10 @@ bool MemDatabase::SaveToDisk( const char* pszDataFile )
 
 		MemoDumper<char>		fileMeta( false, JoinPath( pszDataFile, "meta.dump" ).c_str(), DateTime::Now().DateToLong() );
 
-		for( std::set<unsigned int>::iterator it = m_setTableID.begin(); it != m_setTableID.end(); it++ )
+		for( unsigned int n = 0; n < m_nUsedTableNum; n++ )
 		{
 			char					pszDataID[64] = { 0 };
-			DynamicTable*			pTable = (DynamicTable*)QueryTable( *it );
+			DynamicTable*			pTable = m_arrayQuotationTables + n;
 
 			::sprintf( pszDataID, "%d,", pTable->GetMeta().m_nBindID );
 			fileMeta.Write( pszDataID, ::strlen(pszDataID) );

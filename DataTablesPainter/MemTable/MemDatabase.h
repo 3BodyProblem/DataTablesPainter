@@ -108,7 +108,6 @@ private:
 	CollisionHash				m_HashTableOfPostion;						///< 哈稀表,msgid所在的数据选择类型
 	DynamicTable				m_arrayQuotationTables[MAX_TABBLE_NO];		///< 行情动态表集合
 	unsigned int				m_nUsedTableNum;							///< 已经使用的数据表数组的数量
-	std::set<unsigned int>		m_setTableID;								///< 数据表ID集合
 private:
 	char*						m_pQueryBuffer;								///< 数据查询缓存
 };

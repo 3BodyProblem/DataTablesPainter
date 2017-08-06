@@ -49,6 +49,7 @@ DynamicTable::TableMeta::TableMeta( unsigned int nBindID, unsigned int nRecordWi
 
 void DynamicTable::TableMeta::Clear()
 {
+	m_nBindID = 0;
 	m_nKeyStrLen = 0;
 	m_nRecordWidth = 0;
 }
@@ -95,13 +96,50 @@ void DynamicTable::Release()
 
 	if( NULL != m_pRecordsBuffer )
 	{
-		::memset( m_pRecordsBuffer, 0, m_nMaxBufferSize );
+		::free( m_pRecordsBuffer );
+		m_pRecordsBuffer = NULL;
+		m_nMaxBufferSize = 0;
 	}
 }
 
 DynamicTable::TableMeta DynamicTable::GetMeta()
 {
 	return m_oTableMeta;
+}
+
+bool DynamicTable::SwapTableInSameArray( DynamicTable* pTable )
+{
+	if( NULL == pTable )
+	{
+		::printf( "DynamicTable::SwapTableInSameArray() : invalid argument pointer [Null]\n" );
+		return false;
+	}
+
+	TableMeta		objTmpTableMeta = m_oTableMeta;
+	m_oTableMeta = pTable->m_oTableMeta;
+	pTable->m_oTableMeta = objTmpTableMeta;
+
+	char*			pTmpBuffer = m_pRecordsBuffer;
+	m_pRecordsBuffer = pTable->m_pRecordsBuffer;
+	pTable->m_pRecordsBuffer = pTmpBuffer;
+
+	unsigned int	nTmpMaxBufSize = m_nMaxBufferSize;
+	m_nMaxBufferSize = pTable->m_nMaxBufferSize;
+	pTable->m_nMaxBufferSize = nTmpMaxBufSize;
+
+	unsigned int	nTmpCurrentDataSize = m_nCurrentDataSize;
+	m_nCurrentDataSize = pTable->m_nCurrentDataSize;
+	pTable->m_nCurrentDataSize = nTmpCurrentDataSize;
+
+	CollisionHash	oTmpHashTable = m_oHashTableOfIndex;
+	m_oHashTableOfIndex = pTable->m_oHashTableOfIndex;
+	pTable->m_oHashTableOfIndex = oTmpHashTable;
+
+	int		nOffset = (char*)this - (char*)pTable;
+	m_oHashTableOfIndex.CoordinateNodePtr( nOffset );
+	pTable->m_oHashTableOfIndex.CoordinateNodePtr( nOffset*-1 );
+
+	return true;
 }
 
 unsigned int DynamicTable::GetRecordCount()

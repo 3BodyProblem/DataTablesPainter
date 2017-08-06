@@ -94,6 +94,13 @@ public:
 	 */
 	void				Clear();
 
+public:///< 工具方法
+	/**
+	 * @brief			统一调整哈稀桶和碰撞桶内指针的地址偏移
+	 * @param[in]		nOffset		偏移量(>0向后偏移, <0向前偏移)
+	 */
+	void				CoordinateNodePtr( int nOffset );
+
 protected:
 	/**
 	 * @brief			将一个节点从列表中移除
