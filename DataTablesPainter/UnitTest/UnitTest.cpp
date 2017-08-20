@@ -382,9 +382,16 @@ void TestTableOperation::TestDeleteAllTables()
 	ASSERT_EQ( 0, UnitTestEnv::GetDatabasePtr()->DeleteTables() );
 }
 
-void TestTableOperation::TestDeleteOneTable( unsigned int nTableID )
+void TestTableOperation::TestDeleteOneTable( unsigned int nTableID, bool bIsExist )
 {
-	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->DeleteTable( nTableID ) );
+	if( true == bIsExist )
+	{
+		ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->DeleteTable( nTableID ) );
+	}
+	else
+	{
+		ASSERT_EQ( false, UnitTestEnv::GetDatabasePtr()->DeleteTable( nTableID ) );
+	}
 
 	I_Table*	pTable = UnitTestEnv::GetDatabasePtr()->QueryTable( nTableID );
 	ASSERT_EQ( NULL, pTable );
@@ -407,11 +414,11 @@ TEST_F( TestTableOperation, DumpEmptyTablesAndLoad )
 	::Sleep( 3000 );
 	::system( "del /f/s/q .\\DataRecover\\*" );
 
-	TestDeleteAllTables();
-	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), false );
-	ASSERT_LT( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), 0 );
+	TestDeleteAllTables();																	///< 删除全部数据表
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), false );		///< 保存空数据库
+	ASSERT_LT( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), 0 );		///< 从本地恢复空数据库
 
-	for( int n = 0; n < 2; n++ )
+	for( int n = 0; n < 2; n++ )															///< 测试: 不存在任何数据表
 	{
 		TestLocateMarketInfo( false );
 		TestLocateNameTable( false );
@@ -422,27 +429,27 @@ TEST_F( TestTableOperation, DumpEmptyTablesAndLoad )
 ///< ----------------- 测试单条记录的插入和删除测试 ------------------------------------
 TEST_F( TestTableOperation, InsertOneRecordAndDelete )
 {
-	TestLocateMarketInfo();TestInsertMarketInfo( 0 );TestSelectMarketInfo( 0, true );
-	TestDeleteMarketInfo( 0, true );TestSelectMarketInfo( 0, false );
+	TestLocateMarketInfo();TestInsertMarketInfo( 0 );TestSelectMarketInfo( 0, true );		///< 插入一条记录，并测试有无
+	TestDeleteMarketInfo( 0, true );TestSelectMarketInfo( 0, false );						///< 删除一条记录，并测试有无
 	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 
-	TestLocateMarketInfo( true );
-	TestDeleteOneTable( T_Message_MarketInfo::GetID() );
-	TestLocateMarketInfo( false );
+	TestLocateMarketInfo( true );															///< 定位测试一个存在的数据表
+	TestDeleteOneTable( T_Message_MarketInfo::GetID() );									///< 删除一个数据表
+	TestLocateMarketInfo( false );															///< 测试这个数据表的存在
 
-	TestLocateNameTable();TestInsertNameTable( 0 );TestSelectNameTable( 0, true );
-	TestDeleteNameTable( 0, true );TestSelectNameTable( 0, false );
+	TestLocateNameTable();TestInsertNameTable( 0 );TestSelectNameTable( 0, true );			///< 插入一条记录，并测试有无
+	TestDeleteNameTable( 0, true );TestSelectNameTable( 0, false );							///< 删除一条记录，并测试有无
 	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 
-	TestLocateNameTable( true );
-	TestDeleteOneTable( T_Message_NameTable::GetID() );
-	TestLocateNameTable( false );
+	TestLocateNameTable( true );															///< 定位测试一个存在的数据表
+	TestDeleteOneTable( T_Message_NameTable::GetID() );										///< 删除一个数据表
+	TestLocateNameTable( false );															///< 测试这个数据表的存在
 
-	TestLocateSnapTable();TestInsertSnapTable( 0 );TestSelectSnapTable( 0, true );
-	TestDeleteSnapTable( 0, true );TestSelectSnapTable( 0, false );
+	TestLocateSnapTable();TestInsertSnapTable( 0 );TestSelectSnapTable( 0, true );			///< 插入一条记录，并测试有无
+	TestDeleteSnapTable( 0, true );TestSelectSnapTable( 0, false );							///< 删除一条记录，并测试有无
 	ASSERT_EQ( 0, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 
-	TestDeleteAllTables();
+	TestDeleteAllTables();																	///< 删除所有数据表
 }
 
 ///< ----------------- 测试在重复建、删数据情况下的数据表各操作 -------------------------
@@ -453,9 +460,9 @@ TEST_F( TestTableOperation, DeleteTableWithOperation )
 	int		nNameTableSize = m_vctNameTable.size();
 	int		nSnapTableSize = m_vctSnapTable.size();
 
-	for( int n = 0; n < m_nMaxLoopNum*2; n++ )
+	for( int n = 0; n < m_nMaxLoopNum*2; n++ )												///< 循环，重复插入各表的记录
 	{
-		bIsExistInsert = n>=nMkListSize?true:false;
+		bIsExistInsert = n>=nMkListSize?true:false;											///< 是否已经重复插入的标识，有重复，则返回插入调用值为0(否则为大于0)
 		TestLocateMarketInfo();TestInsertMarketInfo( n, bIsExistInsert );TestSelectMarketInfo( n, true );
 		bIsExistInsert = n>=nNameTableSize?true:false;
 		TestLocateNameTable();TestInsertNameTable( n, bIsExistInsert );TestSelectNameTable( n, true );
@@ -464,22 +471,22 @@ TEST_F( TestTableOperation, DeleteTableWithOperation )
 	}
 
 	TestLocateMarketInfo( true );
-	TestDeleteOneTable( T_Message_MarketInfo::GetID() );
+	TestDeleteOneTable( T_Message_MarketInfo::GetID() );									///< 删除一个数据表，并测试有无
 	TestLocateMarketInfo( false );
 
-	TestLocateNameTable();TestInsertNameTable( 0, true );TestSelectNameTable( 0, true );
+	TestLocateNameTable();TestInsertNameTable( 0, true );TestSelectNameTable( 0, true );	///< 测试重复插入(返回值为0)
 	unsigned int	nBeforeDeleteCount = ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount();
-	TestDeleteNameTable( 0, true );TestSelectNameTable( 0, false );
+	TestDeleteNameTable( 0, true );TestSelectNameTable( 0, false );							///< 删除一个数据表，并测试当前数据表总数
 	ASSERT_EQ( nBeforeDeleteCount-1, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 
 	TestLocateSnapTable( true );
-	TestDeleteOneTable( T_Message_SnapTable::GetID() );
+	TestDeleteOneTable( T_Message_SnapTable::GetID() );										///< 删除一个数据表，并测试有无
 	TestLocateSnapTable( false );
 
-	TestDeleteAllTables();
+	TestDeleteAllTables();																	///< 删除，重建所有数据表
 	TestCreateAllTable();
 
-	for( int n = 0; n < m_nMaxLoopNum*2; n++ )
+	for( int n = 0; n < m_nMaxLoopNum*2; n++ )												///< 除marketinfo外，其他数据表都最多只插入21条记录
 	{
 		bIsExistInsert = n>=nMkListSize?true:false;
 		TestLocateMarketInfo();TestInsertMarketInfo( n, bIsExistInsert );TestSelectMarketInfo( n, true );
@@ -492,14 +499,14 @@ TEST_F( TestTableOperation, DeleteTableWithOperation )
 	}
 
 	TestLocateNameTable( true );
-	TestDeleteOneTable( T_Message_NameTable::GetID() );
+	TestDeleteOneTable( T_Message_NameTable::GetID() );										///< 删除在中间的数据表，并测试有无
 	TestLocateNameTable( false );
 
-	for( int n = 0; n < m_nMaxLoopNum*2; n++ )
+	for( int n = 0; n < m_nMaxLoopNum*2; n++ )												///< 重复插入记录，并测试已经存在
 	{
 		TestLocateMarketInfo();TestInsertMarketInfo( n, true );TestSelectMarketInfo( n, true );
 		if( n < 21 ) {
-			TestLocateNameTable( false );
+			TestLocateNameTable( false );													///< 测试数据表的不存在
 		}
 		bIsExistInsert = (n>=nSnapTableSize)||(n<21)?true:false;
 		TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
@@ -516,6 +523,7 @@ TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 	int		nNameTableSize = m_vctNameTable.size();
 	int		nSnapTableSize = m_vctSnapTable.size();
 
+	///< 重复插入全部记录(顺序)
 	for( int n = 0; n < m_nMaxLoopNum*2; n++ )
 	{
 		bIsExistInsert = n>=nMkListSize?true:false;
@@ -526,7 +534,7 @@ TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 		TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
 	}
 
-	///< 顺着删除全部记录
+	///< 顺着删除全部记录(顺序)
 	for( int m = 0; m < m_nMaxLoopNum*2; m++ )
 	{
 		bIsExistInsert = m<nMkListSize?true:false;
@@ -537,6 +545,7 @@ TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 		TestLocateSnapTable();TestDeleteSnapTable( m, bIsExistInsert );TestSelectSnapTable( m, false );
 	}
 
+	///< 再次重复插入全部记录(顺序)
 	for( int nn = 0; nn < m_nMaxLoopNum*2; nn++ )
 	{
 		bIsExistInsert = nn>=nMkListSize?true:false;
@@ -547,7 +556,7 @@ TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 		TestLocateSnapTable();TestInsertSnapTable( nn, bIsExistInsert );TestSelectSnapTable( nn, true );
 	}
 
-	///< 倒着删除全部记录
+	///< 倒着删除全部记录(倒序)
 	for( int a = nMkListSize - 1; a >= 0; a-- )
 	{
 		TestLocateMarketInfo();TestDeleteMarketInfo( a, bIsExistInsert );TestSelectMarketInfo( a, false );
@@ -561,6 +570,7 @@ TEST_F( TestTableOperation, InsertAllRecordAndDeleteAll )
 		TestLocateSnapTable();TestDeleteSnapTable( c, bIsExistInsert );TestSelectSnapTable( c, false );
 	}
 
+	///< 再次重复插入全部记录(顺序)
 	for( int nn = 0; nn < m_nMaxLoopNum*2; nn++ )
 	{
 		bIsExistInsert = nn>=nMkListSize?true:false;
@@ -583,8 +593,8 @@ TEST_F( TestTableOperation, DumpAllDataAndLoadAfterInsertAllRecords )
 		TestLocateSnapTable();TestSelectSnapTable( n, true );
 	}
 
-	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), true );
-	ASSERT_GT( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), 0 );
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), true );	///< 保存数据库到本地
+	ASSERT_GT( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), 0 );	///< 从本地恢复数据库
 
 	///< 重载后全部记录校验
 	for( int n = 0; n < m_nMaxLoopNum; n++ )
@@ -605,7 +615,7 @@ TEST_F( TestTableOperation, DeleteSomeRecordWithUpdate )
 		TestLocateNameTable();TestSelectNameTable( n, true );
 		TestLocateSnapTable();TestSelectSnapTable( n, true );
 	}
-
+	///< 删除一条记录，并进行效果校验
 	TestLocateMarketInfo();TestDeleteMarketInfo( 1, true );TestSelectMarketInfo( 1, false );
 	for( int n = 0; n < m_nMaxLoopNum; n++ )
 	{
@@ -616,18 +626,18 @@ TEST_F( TestTableOperation, DeleteSomeRecordWithUpdate )
 			bIsExist = false;
 			break;
 		}
-		TestUpdateMarketInfo( n, bIsExist );
+		TestUpdateMarketInfo( n, bIsExist );	///< 更新数据记录
 		TestSelectMarketInfo( n, bIsExist );
 	}
-
+	///< 删除一些记录
 	TestLocateNameTable();TestDeleteNameTable( 1, true );TestSelectNameTable( 1, false );
 	TestLocateNameTable();TestDeleteNameTable( 5, true );TestSelectNameTable( 5, false );
-	for( int a = 0; a < 10; a++ )
+	for( int a = 0; a < 10; a++ )				///< 重复删除两条特定的且不存在的记录
 	{
 		TestDeleteNameTable( 1, false );TestSelectNameTable( 1, false );
 		TestDeleteNameTable( 5, false );TestSelectNameTable( 5, false );
 	}
-	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	for( int n = 0; n < m_nMaxLoopNum; n++ )	///< 更新数据记录
 	{
 		bool bIsExist = true;
 		switch( n%m_vctNameTable.size() )
@@ -675,9 +685,10 @@ TEST_F( TestTableOperation, DeleteSomeRecordWithUpdate )
 ///< 对全部记录的数据表进行落盘/加载测试
 TEST_F( TestTableOperation, DumpAllDataAndLoadAfterDeleteSomeRecords )
 {
-	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), true );
-	ASSERT_GT( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), 0 );
+	ASSERT_EQ( UnitTestEnv::GetDatabasePtr()->SaveToDisk( "./DataRecover/" ), true );		///< 落盘全部数据库
+	ASSERT_GT( UnitTestEnv::GetDatabasePtr()->LoadFromDisk( "./DataRecover/" ), 0 );		///< 本地恢复全部数据
 
+	///< 对恢复后的数据进行重复更新
 	TestLocateMarketInfo();
 	for( int n = 0; n < m_nMaxLoopNum; n++ )
 	{
@@ -735,6 +746,67 @@ TEST_F( TestTableOperation, CreateBundleOfDatabasePointer )
 {
 	for( int n = 0; n < 5; n++ )	{
 		ASSERT_NE( GetFactoryObject().GrapDatabaseInterface(), (I_Database*)NULL );
+	}
+}
+
+///< 对一数据库进行数据表的创建删除重复测试
+TEST_F( TestTableOperation, DeleteSomeTables )
+{
+	///< 重新创建所有数据表
+	TestDeleteAllTables();
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 1, sizeof(T_Message_MarketInfo), 20 ) );
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 2, sizeof(T_Message_NameTable), 20 ) );
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 3, sizeof(T_Message_SnapTable), 20 ) );
+	TestCreateAllTable();
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 4, sizeof(T_Message_MarketInfo), 20 ) );
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 5, sizeof(T_Message_NameTable), 20 ) );
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 6, sizeof(T_Message_SnapTable), 20 ) );
+
+	///< 重复插入全部记录(顺序)
+	bool	bIsExistInsert = false;
+	int		nMkListSize = m_vctMarketInfo.size();
+	int		nNameTableSize = m_vctNameTable.size();
+	int		nSnapTableSize = m_vctSnapTable.size();
+	for( int n = 0; n < m_nMaxLoopNum*2; n++ )
+	{
+		bIsExistInsert = n>=nMkListSize?true:false;
+		TestLocateMarketInfo();TestInsertMarketInfo( n, bIsExistInsert );TestSelectMarketInfo( n, true );
+		bIsExistInsert = n>=nNameTableSize?true:false;
+		TestLocateNameTable();TestInsertNameTable( n, bIsExistInsert );TestSelectNameTable( n, true );
+		bIsExistInsert = n>=nSnapTableSize?true:false;
+		TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
+	}
+
+	TestDeleteOneTable( 2, true );							///< 删除在中间的数据表，并测试有无
+	TestDeleteOneTable( 2, false );							///< 删除在中间的数据表，并测试有无
+	TestDeleteOneTable( 2, false );							///< 删除在中间的数据表，并测试有无
+	TestDeleteOneTable( 6, true );
+	TestDeleteOneTable( 5, true );
+	TestDeleteOneTable( 5, false );
+	TestDeleteOneTable( 5, false );
+	TestDeleteOneTable( 4, true );
+	TestDeleteOneTable( 1, true );
+	TestDeleteOneTable( 1, false );
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		bIsExistInsert = true;
+		TestLocateMarketInfo();TestInsertMarketInfo( n, bIsExistInsert );TestSelectMarketInfo( n, true );
+		TestLocateNameTable();TestInsertNameTable( n, bIsExistInsert );TestSelectNameTable( n, true );
+		TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
+	}
+
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 1, sizeof(T_Message_MarketInfo), 20 ) );
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 2, sizeof(T_Message_NameTable), 20 ) );
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 3, sizeof(T_Message_SnapTable), 20 ) );
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 4, sizeof(T_Message_MarketInfo), 20 ) );
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 5, sizeof(T_Message_NameTable), 20 ) );
+	ASSERT_EQ( true, UnitTestEnv::GetDatabasePtr()->CreateTable( 6, sizeof(T_Message_SnapTable), 20 ) );
+	for( int n = 0; n < m_nMaxLoopNum; n++ )
+	{
+		bIsExistInsert = true;
+		TestLocateMarketInfo();TestInsertMarketInfo( n, bIsExistInsert );TestSelectMarketInfo( n, true );
+		TestLocateNameTable();TestInsertNameTable( n, bIsExistInsert );TestSelectNameTable( n, true );
+		TestLocateSnapTable();TestInsertSnapTable( n, bIsExistInsert );TestSelectSnapTable( n, true );
 	}
 }
 

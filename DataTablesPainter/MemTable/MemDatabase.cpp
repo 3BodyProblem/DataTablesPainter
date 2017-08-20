@@ -66,13 +66,13 @@ bool MemDatabase::DeleteTable( unsigned int nBindID )
 
 		if( NULL == pInfoPosition )
 		{
-			::printf( "MemDatabase::DeleteTable() : 1 invalid BindID, subscript out of range of memo-tables list, BindID=%u\n", nBindID );
+			::printf( "MemDatabase::DeleteTable() : BindID(%u) is not exist\n", nBindID );
 			return NULL;
 		}
 
 		if( true == pInfoPosition->IsNull() )									///< 该数据表索引信息不存在
 		{
-			::printf( "MemDatabase::DeleteTable() : 2 invalid BindID, subscript out of range of memo-tables list, BindID=%u\n", nBindID );
+			::printf( "MemDatabase::DeleteTable() : invalid position index value or BindID(%u) is not exist\n", nBindID );
 			return NULL;
 		}
 
@@ -95,8 +95,12 @@ bool MemDatabase::DeleteTable( unsigned int nBindID )
 		{
 			::printf( "MemDatabase::DeleteTable() : TableID(%u) Deleted!, errorcode=%d\n", nBindID, nResult );
 		}
+		else
+		{
+			::printf( "MemDatabase::DeleteTable() : TableID(%u) is not exist or failed 2 delete!, errorcode=%d\n", nBindID, nResult );
+		}
 
-		return (nResult >= 0) ? true : false;
+		return (nResult > 0) ? true : false;
 	}
 	catch( std::exception& err )
 	{
