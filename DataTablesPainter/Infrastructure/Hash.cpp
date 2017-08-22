@@ -22,7 +22,9 @@ int CollisionHash::NewKey( unsigned __int64 nKey, int nDataPos, unsigned __int64
 
 	if( m_nUsedNumOfCollisionBucket >= (MAX_DATATABLE_NUM-1) )
 	{
-		throw std::runtime_error( "CollisionHash::NewKey() : data buffer is full" );
+		char	pszError[128*2] = { 0 };
+		::sprintf( pszError, "CollisionHash::NewKey() : data buffer is full : %u >= %u", m_nUsedNumOfCollisionBucket, (MAX_DATATABLE_NUM-1) );
+		throw std::runtime_error( pszError );
 	}
 
 	if( true == pNode->IsNull() )
