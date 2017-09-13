@@ -142,7 +142,7 @@ bool MemDatabase::CreateTable( unsigned int nBindID, unsigned int nRecordWidth, 
 
 		if( nResult > 0 )
 		{
-			::printf( "MemDatabase::CreateTable() : TableID(%u) Created!, errorcode=%d\n", nBindID, nResult );
+			::printf( "MemDatabase::CreateTable() : TableID(%u) Created! Index=%u, errorcode=%d\n", nBindID, nResult, m_nUsedTableNum );
 		}
 
 		return (nResult >= 0) ? true : false;
