@@ -192,9 +192,9 @@ RecordBlock DynamicTable::SelectRecord( char* pKeyStr, unsigned int nKeyLen )
 {
 	try
 	{
-		if( NULL == pKeyStr || nKeyLen <= 0 )
+		if( NULL == pKeyStr )
 		{
-			::printf( "DynamicTable::SelectRecord() : invalid arguments\n" );
+			::printf( "DynamicTable::SelectRecord() : invalid arguments, KeyCode == (Ptr)NULL\n" );
 			return RecordBlock( NULL, 0 );
 		}
 
@@ -428,9 +428,9 @@ int DynamicTable::CopyToBuffer( char* pBuffer, unsigned int nBufferSize, unsigne
 	{
 		CriticalLock				lock( m_oCSLock );
 
-		if( m_nCurrentDataSize >= nBufferSize )
+		if( m_nCurrentDataSize > nBufferSize )
 		{
-			::printf( "DynamicTable::CopyToBuffer() : data buffer isn\'t less than data size.\n" );
+			::printf( "DynamicTable::CopyToBuffer() : data buffer isn\'t less than data size.  %d > %d \n", m_nCurrentDataSize, nBufferSize );
 			return -1;
 		}
 
