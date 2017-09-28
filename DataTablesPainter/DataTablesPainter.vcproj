@@ -66,6 +66,8 @@
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../libs/gtest/library_vc9/Debug/"
 				GenerateDebugInformation="true"
+				GenerateMapFile="true"
+				MapFileName="$(TargetDir)$(TargetName).map"
 				SubSystem="2"
 				TargetMachine="1"
 			/>
@@ -142,6 +144,8 @@
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../libs/gtest/library_vc9/Release/"
 				GenerateDebugInformation="true"
+				GenerateMapFile="true"
+				MapFileName="$(TargetDir)$(TargetName).map"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -282,6 +286,14 @@
 					CompileAsManaged="0"
 				/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\dump.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\dump.h"
+			>
 		</File>
 		<File
 			RelativePath=".\Interface.cpp"
