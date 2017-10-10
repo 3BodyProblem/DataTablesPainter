@@ -178,7 +178,7 @@ bool DynamicTable::EnlargeBuffer( unsigned long nAllocItemNum )
 		}
 
 		m_nMaxBufferSize += nNewBufferSize;
-		::memset( pTemp, 0, nNewBufferSize );
+		::memset( pTemp, 0, m_nMaxBufferSize );
 		::memcpy( pTemp, m_pRecordsBuffer, m_nCurrentDataSize );
 
 		::free( m_pRecordsBuffer );
