@@ -302,8 +302,7 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 		nDbSerialNo = 0;
 		if( NULL == m_pRecordsBuffer || m_nMaxBufferSize <= m_nCurrentDataSize )
 		{	///< 内存未分配的情况 或 内存已经用完的情况
-			if( false == EnlargeBuffer( (0==m_nMaxBufferSize)?1:1024 ) )
-			{
+			if( false == EnlargeBuffer( (0==m_nMaxBufferSize)?1:1024 ) )	{
 				return -1;
 			}
 		}
@@ -328,8 +327,14 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 		unsigned int			nDataOffsetIndex = m_oTableMeta.m_nRecordWidth * pRecordPostion->nDataPos;
 		if( m_oTableMeta.m_nRecordWidth > (m_nMaxBufferSize-nDataOffsetIndex) )	///< 是否有足够的后续长度( 需要大于等于DataBlockSize)
 		{
-			::printf( "DynamicTable::InsertRecord() : subscript out of range of memo-tables list\n" );
+			::printf( "DynamicTable::InsertRecord() : require more free buffer, [%u > %u]\n", m_oTableMeta.m_nRecordWidth, (m_nMaxBufferSize-nDataOffsetIndex) );
 			return -4;
+		}
+
+		if( nRecordLen > (m_nMaxBufferSize-nDataOffsetIndex) )
+		{
+			::printf( "DynamicTable::InsertRecord() : cannot write record 2 buffer, require more free buffer, [%u > %u]\n", nRecordLen, (m_nMaxBufferSize-nDataOffsetIndex) );
+			return -5;
 		}
 
 		DyncRecord				oCurRecord( m_pRecordsBuffer + nDataOffsetIndex, m_oTableMeta.m_nRecordWidth );
@@ -337,13 +342,13 @@ int DynamicTable::InsertRecord( char* pRecord, unsigned int nRecordLen, unsigned
 		if( true == pRecordPostion->IsNull() )
 		{
 			::printf( "DynamicTable::InsertRecord() : invalid MainKey, cannot locate record in table\n" );
-			return -5;
+			return -6;
 		}
 
 		if( nDataOffsetIndex > (m_nMaxBufferSize-nRecordLen) )
 		{
 			::printf( "DynamicTable::InsertRecord() : subscript out of range of memo-tables list\n" );
-			return -6;
+			return -7;
 		}
 
 		if( oCurRecord.CloneFrom( objRecord ) >= 0 )
@@ -378,8 +383,7 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned
 		nDbSerialNo = 0;
 		if( NULL == m_pRecordsBuffer || m_nMaxBufferSize <= m_nCurrentDataSize )
 		{	///< 内存未分配的情况 或 内存已经用完的情况
-			if( false == EnlargeBuffer( (0==m_nMaxBufferSize)?1:1024 ) )
-			{
+			if( false == EnlargeBuffer( (0==m_nMaxBufferSize)?1:1024 ) )	{
 				return -1;
 			}
 		}
@@ -395,9 +399,15 @@ int DynamicTable::UpdateRecord( char* pRecord, unsigned int nRecordLen, unsigned
 			return 0;
 		}
 
-		if( m_oTableMeta.m_nRecordWidth > (m_nMaxBufferSize-nRecordLen) )
+		if( m_oTableMeta.m_nRecordWidth > (m_nMaxBufferSize-nDataOffsetIndex) )
 		{
-			::printf( "DynamicTable::UpdateRecord() : subscript out of range of memo-tables list\n" );
+			::printf( "DynamicTable::UpdateRecord() : require more free buffer, [%u > %u]\n", m_oTableMeta.m_nRecordWidth, (m_nMaxBufferSize-nDataOffsetIndex) );
+			return -2;
+		}
+
+		if( nRecordLen > (m_nMaxBufferSize-nDataOffsetIndex) )
+		{
+			::printf( "DynamicTable::UpdateRecord() : cannot write record 2 buffer, require more free buffer, [%u > %u]\n", nRecordLen, (m_nMaxBufferSize-nDataOffsetIndex) );
 			return -3;
 		}
 

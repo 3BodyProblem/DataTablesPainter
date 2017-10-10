@@ -89,6 +89,8 @@ extern "C"
 {
 	__declspec(dllexport) IDBFactory&  GetFactoryObject()
 	{
+		::printf( "[Version]  1.0.1 \n" );
+
 		return DBFactory::GetFactory();
 	}
 
