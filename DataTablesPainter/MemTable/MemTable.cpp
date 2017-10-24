@@ -115,25 +115,41 @@ bool DynamicTable::SwapTableInSameArray( DynamicTable* pTable )
 		return false;
 	}
 
+	CriticalLock	lock( m_oCSLock );
+
+	///< swap 'TableMeta'
 	TableMeta		objTmpTableMeta = m_oTableMeta;
 	m_oTableMeta = pTable->m_oTableMeta;
 	pTable->m_oTableMeta = objTmpTableMeta;
 
+	///< swap 'Buffer Pointer'
 	char*			pTmpBuffer = m_pRecordsBuffer;
 	m_pRecordsBuffer = pTable->m_pRecordsBuffer;
 	pTable->m_pRecordsBuffer = pTmpBuffer;
 
+	///< swap 'Max Buffer Length'
 	unsigned int	nTmpMaxBufSize = m_nMaxBufferSize;
 	m_nMaxBufferSize = pTable->m_nMaxBufferSize;
 	pTable->m_nMaxBufferSize = nTmpMaxBufSize;
 
+	///< swap 'Data Length'
 	unsigned int	nTmpCurrentDataSize = m_nCurrentDataSize;
 	m_nCurrentDataSize = pTable->m_nCurrentDataSize;
 	pTable->m_nCurrentDataSize = nTmpCurrentDataSize;
 
-	CollisionHash	oTmpHashTable = m_oHashTableOfIndex;
+	CollisionHash*	pTmpHashTable = (CollisionHash*)(new char[sizeof(CollisionHash) + 128]);
+	*pTmpHashTable = m_oHashTableOfIndex;
 	m_oHashTableOfIndex = pTable->m_oHashTableOfIndex;
-	pTable->m_oHashTableOfIndex = oTmpHashTable;
+	pTable->m_oHashTableOfIndex = *pTmpHashTable;
+
+	if( NULL == pTmpHashTable )
+	{
+		return false;
+	}
+	else
+	{
+		delete [] pTmpHashTable;
+	}
 
 	int		nOffset = (char*)this - (char*)pTable;
 	m_oHashTableOfIndex.CoordinateNodePtr( nOffset );

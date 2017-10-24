@@ -77,7 +77,7 @@ bool MemDatabase::DeleteTable( unsigned int nBindID )
 		}
 
 		int						nPosInTable = pInfoPosition->nDataPos;
-		DynamicTable*			pDynTable = &m_arrayQuotationTables[pInfoPosition->nDataPos];
+		DynamicTable*			pDynTable = m_arrayQuotationTables + pInfoPosition->nDataPos;
 
 		if( NULL != pDynTable )
 		{
@@ -86,7 +86,8 @@ bool MemDatabase::DeleteTable( unsigned int nBindID )
 
 		for( int n = nPosInTable; n < m_nUsedTableNum-1; n++ )
 		{	///< 将释放数据表所在位置后的数据表前移一位
-			m_arrayQuotationTables[n].SwapTableInSameArray( m_arrayQuotationTables+(n+1) );
+			DynamicTable*			pTmpTable = m_arrayQuotationTables + n;
+			pTmpTable->SwapTableInSameArray( pTmpTable + 1 );
 		}
 
 		m_nUsedTableNum--;
