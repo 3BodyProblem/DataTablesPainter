@@ -480,6 +480,8 @@ TEST_F( TestTableOperation, DeleteTableWithOperation )
 	unsigned int	nBeforeDeleteCount = ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount();
 	TestDeleteNameTable( 0, true );TestSelectNameTable( 0, false );							///< 删除一个数据表，并测试当前数据表总数
 	ASSERT_EQ( nBeforeDeleteCount-1, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
+	TestDeleteNameTable( 2, true );TestSelectNameTable( 2, false );							///< 删除一个数据表，并测试当前数据表总数
+	ASSERT_EQ( nBeforeDeleteCount-2, ((MemoryCollection::DynamicTable*)m_pCurTablePtr)->GetRecordCount() );
 
 	TestLocateSnapTable( true );
 	TestDeleteOneTable( T_Message_SnapTable::GetID() );										///< 删除一个数据表，并测试有无
